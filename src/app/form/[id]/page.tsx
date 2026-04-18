@@ -73,32 +73,45 @@ export default function FormDetail() {
         animate={{ opacity: 1, x: 0 }}
         className="mb-8"
       >
-        <Button variant="ghost" onClick={() => router.push('/')} className="-ml-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
-        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="ghost" onClick={() => router.push('/')} className="-ml-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Command Center
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border border-primary/30">
+               <img src="/podo.png" alt="Podo" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+               <span className="text-[8px] font-bold text-primary">PODO</span>
+            </div>
+            <span className="text-xs font-bold text-primary uppercase tracking-widest">Case: #PODO-2026</span>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-border shadow-sm">
           <div>
+            <div className="flex items-center gap-3 mb-2">
+               <span className="text-[10px] bg-dark text-white px-2 py-0.5 rounded uppercase tracking-tighter font-bold">Intel Channel</span>
+               <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20 uppercase font-bold">Live Feed</span>
+            </div>
             <h1 className="text-3xl font-bold text-gray-900">{form.title}</h1>
             <p className="text-gray-500 mt-1 font-medium flex items-center gap-2">
-              <span className="text-xs bg-gray-100 px-2 py-0.5 rounded border">ID: {form.id}</span>
-              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20">
-                {submissions.length} Submissions
-              </span>
+              <span className="text-xs font-mono">Source ID: {form.id}</span>
+              <span className="w-1 h-1 bg-gray-300 rounded-full" />
+              <span className="text-xs text-primary font-bold">{submissions.length} Leads Collected</span>
             </p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="sm" className="hidden sm:inline-flex">
               <Layout className="mr-2 h-4 w-4" />
-              Edit Form
+              Analyze Pattern
             </Button>
-            <Button size="sm">
+            <Button size="sm" variant="dark">
               <Table className="mr-2 h-4 w-4" />
-              Export CSV
+              Export Intel
             </Button>
           </div>
         </div>
       </motion.div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -225,22 +238,21 @@ export default function FormDetail() {
 
           {/* Form Meta Info */}
           <section>
-            <h2 className="text-xl font-bold mb-4">Analytics</h2>
+            <h2 className="text-xl font-bold mb-4 flex items-center">
+               <div className="w-1.5 h-5 bg-primary mr-2 rounded-full" />
+               Analytics
+            </h2>
             <Card className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Status</span>
-                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase border border-green-100">{form.status}</span>
+                <span className="text-sm text-gray-500">Source Quality</span>
+                <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase border border-green-100">Verified</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Created At</span>
-                <span className="text-sm font-semibold text-gray-900">{new Date(form.created_at).toLocaleDateString()}</span>
+                <span className="text-sm text-gray-500">Last Intel</span>
+                <span className="text-sm font-semibold text-gray-900">{submissions.length > 0 ? new Date(submissions[0].created_at).toLocaleDateString() : 'N/A'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Total Views</span>
-                <span className="text-sm font-semibold text-gray-900">1,248</span>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <span className="text-sm text-gray-500 font-medium">Response Rate</span>
+                <span className="text-sm text-gray-500">Reliability Index</span>
                 <span className="text-sm font-bold text-primary">84.2%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
@@ -248,7 +260,39 @@ export default function FormDetail() {
               </div>
             </Card>
           </section>
+
+          {/* Record Linking Section */}
+          <section>
+            <h2 className="text-xl font-bold mb-4 flex items-center">
+               <div className="w-1.5 h-5 bg-dark mr-2 rounded-full" />
+               Intelligence Connections
+            </h2>
+            <Card className="p-4 bg-dark text-white border-none shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-2xl" />
+              <p className="text-xs text-primary font-bold uppercase tracking-widest mb-4">Record Linking Active</p>
+              <div className="space-y-3 relative z-10">
+                 <div className="p-3 bg-white/10 rounded-lg border border-white/10 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <div>
+                       <p className="text-[10px] text-gray-400 font-bold uppercase">Cross-Source Match</p>
+                       <p className="text-xs font-medium">Potential sighting link in "Sightings" source</p>
+                    </div>
+                 </div>
+                 <div className="p-3 bg-white/10 rounded-lg border border-white/10 flex items-center gap-3 opacity-60">
+                    <div className="w-2 h-2 rounded-full bg-gray-500" />
+                    <div>
+                       <p className="text-[10px] text-gray-400 font-bold uppercase">Identity Correlation</p>
+                       <p className="text-xs font-medium">Matching phone number in "Messages"</p>
+                    </div>
+                 </div>
+              </div>
+              <Button variant="outline" className="w-full mt-6 border-white/20 text-white hover:bg-white/10 h-9 text-xs">
+                Run Cross-Reference
+              </Button>
+            </Card>
+          </section>
         </div>
+
 
       </div>
 

@@ -41,28 +41,53 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-7xl px-8 py-12">
-      <header className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-        <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Forms Dashboard
-          </h2>
-          <p className="mt-3 text-lg text-gray-500">
-            Monitor and manage your Jotform submissions in real-time.
-          </p>
-        </div>
-        <div className="flex w-full max-w-md gap-3">
-          <Input
-            placeholder="Search forms..."
-            icon={<Search className="h-5 w-5" />}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Button variant="dark" className="shrink-0">
-            <Filter className="mr-2 h-4 w-4" />
-            Filter
-          </Button>
+      <header className="mb-12 flex flex-col justify-between gap-6 lg:flex-row lg:items-center bg-white p-8 rounded-2xl border border-border shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32" />
+        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase">Active Case</span>
+              <span className="text-gray-400 text-xs">#PODO-2026-X</span>
+            </div>
+            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Investigation Command <span className="text-primary">Center</span>
+            </h2>
+            <p className="mt-3 text-lg text-gray-500">
+              Analyze intelligence sources, match records, and track Podo's trail across the city.
+            </p>
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <Input
+                placeholder="Search intel sources, locations, content..."
+                icon={<Search className="h-5 w-5" />}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Button variant="dark" className="shrink-0">
+                <Filter className="mr-2 h-4 w-4" />
+                Advanced
+              </Button>
+            </div>
+          </div>
+          <div className="w-full md:w-48 h-64 relative rounded-xl overflow-hidden shadow-2xl border-4 border-white rotate-3 hover:rotate-0 transition-transform duration-500 group">
+             <img src="/podo_poster.png" alt="Missing Podo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
+                <p className="text-white text-[10px] font-bold uppercase">Last Seen: Oakwood</p>
+             </div>
+          </div>
         </div>
       </header>
+
+
+      <div className="mb-8 flex items-center justify-between">
+        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <div className="w-2 h-6 bg-primary rounded-full" />
+          Intelligence Sources
+        </h3>
+        <div className="flex gap-2">
+          <span className="text-xs text-gray-500 font-medium">Auto-sync: <span className="text-green-600">ON</span></span>
+        </div>
+      </div>
+
 
       {loading ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -94,10 +119,10 @@ export default function Home() {
                 <Card className="group relative overflow-hidden h-full flex flex-col">
                   <div className="mb-4 flex items-start justify-between">
                     <div className="rounded-lg bg-primary/10 p-3 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                      <FileText className="h-6 w-6" />
+                      <Search className="h-6 w-6" />
                     </div>
-                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                      {item.form.status.toUpperCase()}
+                    <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 border border-blue-200">
+                      INTEL SOURCE
                     </span>
                   </div>
                   
@@ -105,10 +130,11 @@ export default function Home() {
                     <h3 className="mb-1 text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
                       {item.form.title}
                     </h3>
-                    <p className="mb-4 text-sm text-gray-500 line-clamp-2">
-                      Last updated: {new Date(item.form.updated_at).toLocaleDateString()}
+                    <p className="mb-4 text-xs text-gray-400 font-mono tracking-tight">
+                      SOURCE ID: {item.form.id}
                     </p>
                   </div>
+
 
                   <div className="mt-auto grid grid-cols-2 gap-4 border-t border-border pt-4">
                     <div className="flex items-center text-sm text-gray-600">

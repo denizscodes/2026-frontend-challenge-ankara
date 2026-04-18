@@ -3,12 +3,16 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ToastProvider";
 import { cn } from "@/utils/cn";
+import { PodoLogo } from "@/components/PodoLogo";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Jotform Records Dashboard",
-  description: "A clean dashboard to view and manage your Jotform submissions.",
+  title: "Missing Podo | Investigation Dashboard",
+  description: "Help us find Podo. Track leads, sightings, and messages in real-time.",
+  icons: {
+    icon: "/podo.png",
+  },
 };
 
 export default function RootLayout({
@@ -18,15 +22,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className={cn(inter.className, "min-h-full flex flex-col antialiased")}>
+      <body className={cn(inter.className, "min-h-full flex flex-col antialiased bg-gray-50")}>
         <ToastProvider />
         <header className="sticky top-0 z-50 glass border-b border-border h-16 flex items-center px-8">
           <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-            <h1 className="text-xl font-bold text-primary tracking-tight">JF CHALLENGE</h1>
+            <div className="flex items-center gap-3">
+              <PodoLogo />
+              <h1 className="text-xl font-bold text-dark tracking-tight">Missing <span className="text-primary">Podo</span></h1>
+            </div>
             <nav className="hidden md:flex gap-6 text-sm font-medium text-gray-500">
-              <a href="#" className="hover:text-primary transition-colors">Dashboard</a>
-              <a href="#" className="hover:text-primary transition-colors">Forms</a>
-              <a href="#" className="hover:text-primary transition-colors">Reports</a>
+              <a href="/" className="hover:text-primary transition-colors">Investigation</a>
+              <a href="#" className="hover:text-primary transition-colors">Leads</a>
+              <a href="#" className="hover:text-primary transition-colors">Timeline</a>
             </nav>
           </div>
         </header>
@@ -36,8 +43,10 @@ export default function RootLayout({
         <footer className="bg-dark text-gray-400 py-12 px-8">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-white font-bold mb-4">JF CHALLENGE</h3>
-              <p className="text-sm">A professional frontend solution for the 2026 challenge, focused on data visualization and user experience.</p>
+              <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                Missing <span className="text-primary">Podo</span>
+              </h3>
+              <p className="text-sm">A professional investigation interface dedicated to finding Podo. Every record counts.</p>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-4">Quick Links</h4>
