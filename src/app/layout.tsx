@@ -7,6 +7,7 @@ import { PodoLogo } from "@/components/PodoLogo";
 import { Fingerprint, Database, Users } from "lucide-react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/Button";
 
 import Link from "next/link";
 
@@ -50,48 +51,73 @@ export default function RootLayout({
         <main className="flex-grow">
           {children}
         </main>
-        <footer className="bg-dark text-muted py-12 px-8">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-white font-bold mb-4 flex items-center gap-2 text-xl tracking-tight">
-                Missing <span className="text-primary">Podo</span>
-              </h3>
-              <p className="text-sm leading-relaxed">
-                A state-of-the-art intelligence gathering and record linking platform dedicated to the safe recovery of Podo. Our mission is to transform raw data into actionable leads.
+        <footer className="bg-[#0a0a0a] text-muted-foreground pt-20 pb-12 px-8 border-t border-white/5">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <PodoLogo />
+                <h3 className="text-white font-black text-2xl tracking-tighter">
+                  Missing <span className="text-primary">Podo</span>
+                </h3>
+              </div>
+              <p className="text-xs leading-relaxed opacity-70">
+                A state-of-the-art intelligence gathering and record linking platform dedicated to the safe recovery of Podo. Our mission is to transform raw data into actionable leads through advanced spatiotemporal analysis and persona correlation.
               </p>
-              <div className="mt-6 p-4 rounded-xl bg-card/5 border border-white/10">
-                 <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Status Report</p>
-                 <p className="text-xs text-muted">Last System Sync: Just now</p>
-                 <p className="text-xs text-muted">Active Intel Nodes: 14</p>
+              <div className="flex gap-3">
+                {[Fingerprint, Database, Users].map((Icon, i) => (
+                  <div key={i} className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:bg-primary hover:border-primary hover:text-white transition-all cursor-pointer">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                ))}
               </div>
             </div>
+
             <div>
-              <h4 className="text-white font-semibold mb-6 uppercase text-xs tracking-[0.2em]">Investigation Tools</h4>
-              <ul className="text-sm space-y-4">
-                <li><Link href="/" className="hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> Intelligence Sources</Link></li>
-                <li><Link href="/investigation" className="hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> Persona Correlation</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> Pattern Analysis</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" /> Spatial Tracking</Link></li>
+              <h4 className="text-white font-bold mb-8 uppercase text-[10px] tracking-[0.3em]">Operational Areas</h4>
+              <ul className="text-xs space-y-4 font-bold">
+                <li><Link href="/" className="hover:text-primary transition-colors flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-primary/40" /> Intelligence Sources</Link></li>
+                <li><Link href="/investigation" className="hover:text-primary transition-colors flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-primary/40" /> Persona Correlation</Link></li>
+                <li><Link href="/investigation-map" className="hover:text-primary transition-colors flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-primary/40" /> Tactical Field Map</Link></li>
+                <li><Link href="#" className="hover:text-primary transition-colors flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-primary/40" /> Pattern Analysis</Link></li>
               </ul>
             </div>
+
             <div>
-              <h4 className="text-white font-semibold mb-6 uppercase text-xs tracking-[0.2em]">Command Center</h4>
-              <p className="text-sm leading-relaxed mb-6">Designed for rapid response and data-driven investigation. If you have information, please use our intelligence forms.</p>
-              <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-xl bg-card/5 border border-white/10 flex items-center justify-center text-white hover:bg-primary hover:border-primary transition-all cursor-pointer">
-                  <Fingerprint className="h-5 w-5" />
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-card/5 border border-white/10 flex items-center justify-center text-white hover:bg-primary hover:border-primary transition-all cursor-pointer">
-                  <Database className="h-5 w-5" />
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-card/5 border border-white/10 flex items-center justify-center text-white hover:bg-primary hover:border-primary transition-all cursor-pointer">
-                  <Users className="h-5 w-5" />
-                </div>
+              <h4 className="text-white font-bold mb-8 uppercase text-[10px] tracking-[0.3em]">Tactical Status</h4>
+              <div className="space-y-4">
+                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 group hover:border-primary/30 transition-colors">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Sat-Link Active</p>
+                    <p className="text-[10px] opacity-60">Last Global Sync: 14:15:09 UTC</p>
+                    <div className="mt-2 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                       <div className="h-full bg-primary w-[94%] animate-pulse" />
+                    </div>
+                 </div>
+                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 group hover:border-primary/30 transition-colors">
+                    <p className="text-[10px] font-bold text-green-500 uppercase tracking-[0.2em] mb-1">Nodes Detected</p>
+                    <p className="text-[10px] opacity-60">14 Active Intelligence Units</p>
+                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h4 className="text-white font-bold mb-8 uppercase text-[10px] tracking-[0.3em]">Command Center</h4>
+              <p className="text-xs leading-relaxed opacity-70">
+                The investigation is managed by a decentralized network of volunteers. Every piece of information counts.
+              </p>
+              <div className="p-4 rounded-2xl bg-primary text-white shadow-[0_0_30px_rgba(255,97,0,0.2)]">
+                 <p className="text-[10px] font-black uppercase tracking-widest mb-1">Found Podo?</p>
+                 <p className="text-[9px] font-bold opacity-80 mb-3 uppercase">Emergency Contact Required</p>
+                 <Button variant="dark" size="sm" className="w-full text-[9px] h-8 bg-black text-white hover:bg-black/80 border-none">REPORT SIGHTING</Button>
               </div>
             </div>
           </div>
-          <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-800 text-center text-xs">
-            © 2026 Frontend Challenge. All rights reserved.
+          <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-bold uppercase tracking-widest opacity-40">
+            <p>© 2026 Podo Investigation Force. All rights reserved.</p>
+            <div className="flex gap-8">
+              <Link href="#" className="hover:text-primary transition-colors">Legal Protocol</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Privacy Shield</Link>
+              <Link href="#" className="hover:text-primary transition-colors">Terms of Op</Link>
+            </div>
           </div>
         </footer>
         </ThemeProvider>

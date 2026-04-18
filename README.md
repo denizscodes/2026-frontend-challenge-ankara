@@ -1,31 +1,115 @@
-# Jotform Frontend Challenge Project
+# 🕵️ Missing Podo: Investigation Command Center
 
-## User Information
-Please fill in your information after forking this repository:
+A high-precision, data-driven intelligence gathering and record linking platform designed to track sightings and movement patterns for a missing pet named **Podo**.
 
-- **Name**: Deniz Karaca
+## 🎯 Project Overview
 
-## Project Description
-[Add a brief description of your project here]
+This project was built for the **2026 Frontend Challenge** as a demonstration of advanced frontend engineering, spatiotemporal data analysis, and premium UI/UX design.
 
-## Getting Started
-[Add instructions for setting up and running the project]
+The platform integrates data from multiple sources (Jotform API), deduplicates identities, and performs advanced relationship analysis between investigative personas and the target (Podo).
 
-# 🚀 Challenge Duyurusu
+---
 
-## 📅 Tarih ve Saat
-Cumartesi günü başlama saatinden itibaren üç saattir.
+## 🚀 Features
 
-## 🎯 Challenge Konsepti
-Bu challenge'da, size özel hazırlanmış bir senaryo üzerine web uygulaması geliştirmeniz istenecektir. Challenge başlangıcında senaryo detayları paylaşılacaktır.Katılımcılar, verilen GitHub reposunu fork ederek kendi geliştirme ortamlarını oluşturacaklardır.
+### 🔍 Intelligence Panel
+*   **Persona Correlation**: Automatically links reports from different forms/sources to the same individual based on email, phone, or name.
+*   **Deep-Search**: Targeted search across identities and locations.
+*   **Advanced Filtering**: Filter by suspicion score, reliability index, time windows, and geographical clusters.
 
-## 📦 GitHub Reposu
-Challenge için kullanılacak repo: https://github.com/cemjotform/2026-frontend-challenge-ankara
+### 🛰️ Tactical Field Map
+*   **Live Movement Tracking**: Visualizes the movements of Podo and suspicious personas.
+*   **Spatiotemporal Analysis**: Detects "Persistent Following" and "Trajectory Matches" using geometric path projection.
+*   **Visual Legend**: Categorizes nodes based on threat levels (High Suspicion vs. Verified Agent).
 
-## 🛠️ Hazırlık Süreci
-1. GitHub reposunu fork edin
-2. Tercih ettiğiniz framework ile geliştirme ortamınızı hazırlayın
-3. Hazırladığınız setup'ı fork ettiğiniz repoya gönderin
+### 🧠 Suspicion Scoring Engine
+*   **Relational Metrics**: Scores are calculated based on behavioral patterns:
+    *   **Persistent Co-occurrence**: Detected across multiple distinct time windows.
+    *   **Trajectory Mirroring**: Route matches Podo's trail.
+    *   **Keyword Analysis**: Intelligence reports containing high-priority keywords.
+*   **Metric Breakdown**: Full transparency into how every score is calculated.
 
-## 💡 Önemli Notlar
-- Katılımcılar kendi tercih ettikleri framework'leri kullanabilirler
+---
+
+## 🛠️ Tech Stack
+
+*   **Framework**: Next.js 14+ (App Router)
+*   **Styling**: Tailwind CSS (Custom Design System)
+*   **Maps**: React Leaflet + OpenStreetMap
+*   **Animations**: Framer Motion
+*   **Icons**: Lucide React
+*   **Data Sourcing**: Jotform API
+
+---
+
+## 📦 Getting Started
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/denizscodes/2026-frontend-challenge-ankara.git
+cd 2026-frontend-challenge-ankara
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Environment Setup
+Create a `.env.local` file in the root directory:
+```env
+NEXT_PUBLIC_JOTFORM_API_KEY=your_api_key_here
+NEXT_PUBLIC_JOTFORM_FORM_IDS=form_id_1,form_id_2
+```
+
+### 4. Run the development server
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the results.
+
+---
+
+## 🧪 Testing
+
+The project uses **Jest** and **React Testing Library** for behavioral verification.
+
+```bash
+npm test
+```
+
+Tests focus on:
+*   Intelligence filtering logic.
+*   Persona profile rendering.
+*   Suspicion metric visualization.
+
+---
+
+## 📐 Architecture
+
+```bash
+src/
+ ├── app/           # Next.js App Router (Pages)
+ ├── components/    # Reusable UI Components
+ ├── hooks/         # Custom Business Logic Hooks (State Management)
+ ├── services/      # API Layer
+ ├── types/         # TypeScript Interfaces
+ └── utils/         # Helper functions (Math, Geometry)
+```
+
+## 🎨 Design System
+*   **Primary**: `#ff6100` (Tactical Orange)
+*   **Dark**: `#000000` (Operational Black)
+*   **Info**: `#2563eb` (Intelligence Blue)
+*   **Typography**: Inter (Modern/Clean)
+
+---
+
+## ⚖️ Trade-offs & Decisions
+*   **Hook-based State**: State management is handled through custom hooks (`/hooks`) for better separation of concerns and testability without the overhead of Redux for this scope.
+*   **Responsive first**: The Tactical Map and Panels are fully optimized for both high-resolution monitors and field tablets.
+
+---
+
+**© 2026 Podo Investigation Force.** Built for the Frontend Challenge.

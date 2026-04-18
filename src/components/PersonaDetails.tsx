@@ -249,6 +249,41 @@ export const PersonaDetails = ({ person, showTimeline = true }: PersonaDetailsPr
             </div>
           </div>
         </Card>
+        
+        {person.suspicionBreakdown && (
+          <Card className="p-6 border-none shadow-lg bg-white relative overflow-hidden">
+             <h3 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-foreground">
+              <Zap className="h-4 w-4 text-primary" />
+              Suspicion Metrics
+            </h3>
+            <div className="space-y-4">
+               {[
+                 { label: 'Persistent Following', value: person.suspicionBreakdown.persistentFollowing, max: 60 },
+                 { label: 'Trajectory Match', value: person.suspicionBreakdown.trajectoryMatch, max: 40 },
+                 { label: 'Critical Keywords', value: person.suspicionBreakdown.criticalKeywords, max: 40 },
+                 { label: 'Spatial Proximity', value: person.suspicionBreakdown.spatialProximity, max: 30 },
+                 { label: 'Single Co-presence', value: person.suspicionBreakdown.singleCoPresence, max: 30 },
+               ].map((metric, i) => (
+                 <div key={i} className="space-y-1.5">
+                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
+                     <span className="text-muted">{metric.label}</span>
+                     <span className={metric.value > 0 ? 'text-primary' : 'text-gray-300'}>+{metric.value}</span>
+                   </div>
+                   <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                     <div 
+                       className={`h-full transition-all duration-700 ${metric.value > 0 ? 'bg-primary' : 'bg-gray-200'}`} 
+                       style={{ width: `${(metric.value / metric.max) * 100}%` }} 
+                     />
+                   </div>
+                 </div>
+               ))}
+            </div>
+            <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+               <span className="text-[10px] font-black uppercase text-muted">Total Score</span>
+               <span className="text-xl font-black text-red-600">{person.suspicionScore}%</span>
+            </div>
+          </Card>
+        )}
 
       
 
