@@ -1,6 +1,7 @@
 'use client';
 
 import { useInvestigation, LinkedPerson } from '@/hooks/useInvestigation';
+import { useInvestigationFilters } from '@/hooks/useInvestigationFilters';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Input } from '@/components/Input';
@@ -23,6 +24,7 @@ import {
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Modal } from '@/components/Modal';
+import { PersonaDetails } from '@/components/PersonaDetails';
 import dynamic from 'next/dynamic';
 
 const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), { 
@@ -32,85 +34,28 @@ const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), 
 
 export default function InvestigationPage() {
   const { linkedPeople, totalLeads, matchedCount, loading, error, refetch } = useInvestigation();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [timeFilter, setTimeFilter] = useState<'all' | '24h' | '48h'>('all');
-  const [minSuspicion, setMinSuspicion] = useState<number | ''>(0);
-  const [maxSuspicion, setMaxSuspicion] = useState<number | ''>(100);
-  const [minReliability, setMinReliability] = useState<number | ''>(0);
-  const [maxReliability, setMaxReliability] = useState<number | ''>(100);
-  const [keywordFilter, setKeywordFilter] = useState('');
+  const {
+    searchQuery, setSearchQuery,
+    selectedLocations, setSelectedLocations,
+    timeFilter, setTimeFilter,
+    minSuspicion, setMinSuspicion,
+    maxSuspicion, setMaxSuspicion,
+    minReliability, setMinReliability,
+    maxReliability, setMaxReliability,
+    keywordFilter, setKeywordFilter,
+    filterType, setFilterType,
+    availableLocations,
+    filteredPeople,
+  } = useInvestigationFilters(linkedPeople);
   
   const [selectedPerson, setSelectedPerson] = useState<LinkedPerson | null>(null);
-  const [filterType, setFilterType] = useState<'all' | 'matched' | 'with_coords'>('all');
   const detailsRef = useRef<HTMLDivElement>(null);
-
-  const availableLocations = useMemo(() => {
-    const locs = new Set<string>();
-    linkedPeople.forEach(p => {
-      if (p.location) locs.add(p.location);
-    });
-    return Array.from(locs).sort();
-  }, [linkedPeople]);
 
   useEffect(() => {
     if (selectedPerson && window.innerWidth < 1024) {
       detailsRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [selectedPerson]);
-
-  const filteredPeople = useMemo(() => {
-    return linkedPeople.filter(person => {
-      // Global Deep-Search Filters
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = !searchQuery || 
-        person.name.toLowerCase().includes(searchLower) ||
-        (person.email && person.email.toLowerCase().includes(searchLower)) ||
-        (person.phone && person.phone.includes(searchQuery)) ||
-        (person.location && person.location.toLowerCase().includes(searchLower)) ||
-        person.id.toLowerCase().includes(searchLower) ||
-        person.submissions.some(sub => 
-          Object.values(sub.answers).some((ans: any) => 
-            String(ans.answer).toLowerCase().includes(searchLower)
-          )
-        );
-      
-      // Location Filters
-      const matchesLocation = selectedLocations.length === 0 || 
-        (person.location && selectedLocations.includes(person.location));
-
-      // Time Filter
-      let matchesTime = true;
-      if (timeFilter !== 'all') {
-        const now = new Date();
-        const hours = timeFilter === '24h' ? 24 : 48;
-        const limit = new Date(now.getTime() - hours * 60 * 60 * 1000);
-        matchesTime = person.submissions.some(sub => new Date(sub.created_at) > limit);
-      }
-
-      // Analytical Filters
-      const matchesSuspicion = person.suspicionScore >= (minSuspicion === '' ? 0 : minSuspicion) && 
-                              person.suspicionScore <= (maxSuspicion === '' ? 100 : maxSuspicion);
-      const matchesReliability = person.reliability >= (minReliability === '' ? 0 : minReliability) && 
-                                person.reliability <= (maxReliability === '' ? 100 : maxReliability);
-      
-      // Keyword Filter
-      const matchesKeywords = !keywordFilter || person.submissions.some(sub => 
-        Object.values(sub.answers).some((ans: any) => 
-          String(ans.answer).toLowerCase().includes(keywordFilter.toLowerCase())
-        )
-      );
-
-      // Type Filter
-      const matchesType = 
-        filterType === 'all' || 
-        (filterType === 'matched' && person.submissions.length > 1) ||
-        (filterType === 'with_coords' && person.coordinates && person.coordinates.length > 0);
-
-      return matchesSearch && matchesType && matchesLocation && 
-             matchesTime && matchesSuspicion && matchesReliability && matchesKeywords;
-    });
-  }, [linkedPeople, searchQuery, filterType, selectedLocations, timeFilter, minSuspicion, maxSuspicion, minReliability, maxReliability, keywordFilter]);
 
   if (error) {
     return (
@@ -381,150 +326,8 @@ export default function InvestigationPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-8"
               >
-                {/* Persona Profile */}
-                <Card className="p-8 border-none shadow-2xl relative overflow-hidden bg-card">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32" />
-                  <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start">
-                    <div className="w-24 h-24 rounded-3xl bg-gray-100 flex items-center justify-center text-muted shrink-0 border-4 border-white shadow-xl">
-                      <Users className="h-12 w-12" />
-                    </div>
-                    <div className="flex-grow">
-                       <div className="flex items-center gap-3 mb-2">
-                          <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">VERIFIED IDENTITY</span>
-                          <span className="text-[10px] font-bold text-muted bg-gray-100 px-2 py-0.5 rounded-full">REL_INDEX: {selectedPerson.reliability.toFixed(1)}%</span>
-                       </div>
-                       <h2 className="text-4xl font-black text-foreground leading-tight">{selectedPerson.name}</h2>
-                       
-                       {/* Suspicion Analysis Overlay */}
-                       {selectedPerson.suspicionScore > 0 && selectedPerson.name.toLowerCase() !== 'podo' && (
-                         <div className="mt-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                               <div className="flex items-center gap-2 text-red-600 font-bold text-xs uppercase tracking-widest mb-1">
-                                  <Zap className="h-4 w-4 fill-red-600" />
-                                  Threat Assessment: {selectedPerson.suspicionScore > 75 ? 'Critical' : 'Elevated'}
-                               </div>
-                               <p className="text-sm font-medium text-foreground opacity-80">{selectedPerson.suspicionReason}</p>
-                               <div className="mt-2 flex flex-wrap gap-2">
-                                  {selectedPerson.submissions.length > 2 && (
-                                     <span className="text-[9px] bg-red-500/20 text-red-600 px-1.5 py-0.5 rounded uppercase font-bold">Frequent Reporter</span>
-                                  )}
-                                  {selectedPerson.coordinates && selectedPerson.coordinates.length > 1 && (
-                                     <span className="text-[9px] bg-red-500/20 text-red-600 px-1.5 py-0.5 rounded uppercase font-bold">Trail Overlap</span>
-                                  )}
-                                  {selectedPerson.reliability < 50 && (
-                                     <span className="text-[9px] bg-red-500/20 text-red-600 px-1.5 py-0.5 rounded uppercase font-bold">Unverified Data</span>
-                                  )}
-                               </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                               <div className="text-right">
-                                  <p className="text-[10px] font-bold text-muted uppercase">Suspicion Score</p>
-                                  <p className="text-2xl font-black text-red-600">{selectedPerson.suspicionScore}%</p>
-                               </div>
-                            </div>
-                         </div>
-                       )}
-
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mt-6">
-                          <div className="flex items-center gap-3 text-sm text-foreground">
-                             <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center text-muted"><Mail className="h-4 w-4" /></div>
-                             <div>
-                                <p className="text-[10px] font-bold text-muted uppercase">Primary Contact</p>
-                                <p className="font-semibold">{selectedPerson.email || 'Not available'}</p>
-                             </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-foreground">
-                             <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center text-muted"><Phone className="h-4 w-4" /></div>
-                             <div>
-                                <p className="text-[10px] font-bold text-muted uppercase">Phone Number</p>
-                                <p className="font-semibold">{selectedPerson.phone || 'Not available'}</p>
-                             </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-foreground">
-                             <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center text-muted"><MapPin className="h-4 w-4" /></div>
-                             <div>
-                                <p className="text-[10px] font-bold text-muted uppercase">Primary Location</p>
-                                <p className="font-semibold">{selectedPerson.location || 'Unknown'}</p>
-                             </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-foreground">
-                             <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center text-muted"><Database className="h-4 w-4" /></div>
-                             <div>
-                                <p className="text-[10px] font-bold text-muted uppercase">Active Threads</p>
-                                <p className="font-semibold">{selectedPerson.submissions.length} Sources Linked</p>
-                             </div>
-                          </div>
-                       </div>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* Map Section */}
-                {selectedPerson.coordinates && selectedPerson.coordinates.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-primary" />
-                      Sighting Locations
-                    </h3>
-                    <div className="h-[400px] w-full">
-                      <InvestigationMap 
-                        coordinates={selectedPerson.coordinates.map(c => ({ ...c, label: `Sighting of ${selectedPerson.name}` }))} 
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Timeline of Records */}
-                <div>
-                  <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Activity Timeline
-                  </h3>
-                  <div className="relative space-y-6 before:absolute before:left-[19px] before:top-4 before:bottom-4 before:w-0.5 before:bg-gray-100">
-                    {selectedPerson.submissions.map((sub, idx) => (
-                      <div key={sub.id} className="relative pl-12">
-                        <div className="absolute left-0 top-1.5 w-10 h-10 rounded-full bg-card border-2 border-primary flex items-center justify-center z-10 shadow-sm">
-                           <div className="w-4 h-4 rounded-full bg-primary" />
-                        </div>
-                        <Card className="hover:border-primary/30 transition-all">
-                           <div className="flex items-start justify-between mb-4">
-                              <div>
-                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-bold text-dark bg-gray-100 px-2 py-0.5 rounded border">{sub.formTitle}</span>
-                                    <span className="text-[10px] text-muted font-mono">#{sub.id.slice(-8)}</span>
-                                 </div>
-                                 <h4 className="font-bold text-foreground">Lead Contribution</h4>
-                              </div>
-                              <div className="text-right">
-                                 <p className="text-xs font-bold text-foreground flex items-center justify-end gap-1">
-                                    <Calendar className="h-3 w-3" /> {new Date(sub.created_at).toLocaleDateString()}
-                                 </p>
-                                 <p className="text-[10px] text-muted font-medium">{new Date(sub.created_at).toLocaleTimeString()}</p>
-                              </div>
-                           </div>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-background/50 p-4 rounded-xl border border-gray-100">
-                              {Object.values(sub.answers).slice(0, 4).map((ans: any, i) => (
-                                 <div key={i}>
-                                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider">{ans.text}</p>
-                                    <p className="text-sm text-foreground mt-0.5 font-medium line-clamp-2">{ans.answer || '—'}</p>
-                                 </div>
-                              ))}
-                           </div>
-                           <div className="mt-4 flex justify-between items-center">
-                              <span className="text-[10px] text-muted flex items-center gap-1 italic">
-                                 <MapPin className="h-3 w-3" /> Reported from IP: {sub.ip}
-                              </span>
-                              <Button variant="ghost" size="sm" className="h-8 text-[11px]">
-                                 Deep Analysis <ExternalLink className="ml-1 h-3 w-3" />
-                              </Button>
-                           </div>
-                        </Card>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <PersonaDetails person={selectedPerson} />
               </motion.div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center p-20 border-2 border-dashed border-border rounded-3xl bg-background/30">

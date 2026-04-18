@@ -38,8 +38,8 @@ export default function RootLayout({
             </Link>
             <nav className="hidden md:flex gap-8 text-sm font-bold uppercase tracking-wider text-muted items-center">
               <Link href="/" className="hover:text-primary transition-colors">Sources</Link>
-              <Link href="/investigation" className="hover:text-primary transition-colors text-foreground">Investigation</Link>
-              <Link href="#" className="hover:text-primary transition-colors">Live Feed</Link>
+              <Link href="/investigation" className="hover:text-primary transition-colors">Intelligence</Link>
+              <Link href="/investigation-map" className="hover:text-primary transition-colors text-foreground">Tactical Map</Link>
               <ThemeToggle />
             </nav>
             <div className="md:hidden">
