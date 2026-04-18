@@ -20,22 +20,42 @@ import {
   Clock,
   Fingerprint
 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Modal } from '@/components/Modal';
+import dynamic from 'next/dynamic';
+
+const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), { 
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-gray-400">Loading Map...</div>
+});
 
 export default function InvestigationPage() {
   const { linkedPeople, totalLeads, matchedCount, loading, error, refetch } = useInvestigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPerson, setSelectedPerson] = useState<LinkedPerson | null>(null);
+  const [filterType, setFilterType] = useState<'all' | 'matched' | 'with_coords'>('all');
+  const detailsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (selectedPerson && window.innerWidth < 1024) {
+      detailsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [selectedPerson]);
 
   const filteredPeople = useMemo(() => {
-    return linkedPeople.filter(person => 
-      person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      person.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      person.phone?.includes(searchQuery)
-    );
-  }, [linkedPeople, searchQuery]);
+    return linkedPeople.filter(person => {
+      const matchesSearch = person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        person.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        person.phone?.includes(searchQuery);
+      
+      const matchesFilter = filterType === 'all' || 
+        (filterType === 'matched' && person.submissions.length > 1) ||
+        (filterType === 'with_coords' && person.coordinates && person.coordinates.length > 0);
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [linkedPeople, searchQuery, filterType]);
 
   if (error) {
     return (
@@ -119,21 +139,45 @@ export default function InvestigationPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="shrink-0 p-2 h-10 w-10">
-              <Filter className="h-4 w-4" />
+          </div>
+          <div className="flex flex-wrap gap-2 px-1">
+            <Button 
+              variant={filterType === 'all' ? 'dark' : 'outline'} 
+              size="sm" 
+              className="text-[10px] h-7 px-3 uppercase font-bold tracking-wider"
+              onClick={() => setFilterType('all')}
+            >
+              All
+            </Button>
+            <Button 
+              variant={filterType === 'matched' ? 'dark' : 'outline'} 
+              size="sm" 
+              className="text-[10px] h-7 px-3 uppercase font-bold tracking-wider"
+              onClick={() => setFilterType('matched')}
+            >
+              Matched Only
+            </Button>
+            <Button 
+              variant={filterType === 'with_coords' ? 'dark' : 'outline'} 
+              size="sm" 
+              className="text-[10px] h-7 px-3 uppercase font-bold tracking-wider"
+              onClick={() => setFilterType('with_coords')}
+            >
+              Has Coords
             </Button>
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest px-2">Personas</h2>
-            {loading ? (
-              [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
-            ) : filteredPeople.length === 0 ? (
-              <div className="p-12 text-center border-2 border-dashed border-border rounded-2xl">
-                <p className="text-gray-500">No identities found.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-3">
+            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest px-2">Personas ({filteredPeople.length})</h2>
+            <div className="max-h-[400px] lg:max-h-[calc(100vh-450px)] overflow-y-auto pr-2 custom-scrollbar space-y-3">
+              {loading ? (
+                [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
+              ) : filteredPeople.length === 0 ? (
+                <div className="p-12 text-center border-2 border-dashed border-border rounded-2xl">
+                  <p className="text-gray-500">No identities found.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
                 {filteredPeople.map((person) => (
                   <button
                     key={person.id}
@@ -170,11 +214,15 @@ export default function InvestigationPage() {
                 ))}
               </div>
             )}
+            </div>
           </div>
         </div>
 
         {/* Detailed View */}
-        <div className="flex-grow">
+        <div 
+          ref={detailsRef}
+          className="flex-grow lg:max-h-[calc(100vh-250px)] lg:overflow-y-auto custom-scrollbar lg:pr-4"
+        >
           <AnimatePresence mode="wait">
             {selectedPerson ? (
               <motion.div
@@ -230,6 +278,21 @@ export default function InvestigationPage() {
                     </div>
                   </div>
                 </Card>
+
+                {/* Map Section */}
+                {selectedPerson.coordinates && selectedPerson.coordinates.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      Sighting Locations
+                    </h3>
+                    <div className="h-[400px] w-full">
+                      <InvestigationMap 
+                        coordinates={selectedPerson.coordinates.map(c => ({ ...c, label: `Sighting of ${selectedPerson.name}` }))} 
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Timeline of Records */}
                 <div>

@@ -8,6 +8,7 @@ export interface LinkedPerson {
   email?: string;
   phone?: string;
   location?: string;
+  coordinates?: { lat: number; lng: number }[];
   submissions: (JotformSubmission & { formTitle: string })[];
   lastSeen?: string;
   reliability: number;
@@ -36,6 +37,7 @@ export const useInvestigation = () => {
       let email = '';
       let phone = '';
       let location = '';
+      let subCoords: { lat: number; lng: number } | null = null;
 
       Object.values(sub.answers).forEach((ans: any) => {
         const text = ans.text.toLowerCase();
@@ -50,6 +52,11 @@ export const useInvestigation = () => {
             phone = value.replace(/\D/g, '');
           } else if (text.includes('konum') || text.includes('location') || text.includes('adres') || text.includes('nerede')) {
             location = value;
+          } else if (text.includes('koordinat') || text.includes('coordinate')) {
+            const parts = value.split(',').map(p => parseFloat(p.trim()));
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+              subCoords = { lat: parts[0], lng: parts[1] };
+            }
           }
         }
       });
@@ -67,6 +74,10 @@ export const useInvestigation = () => {
         if (email && !person.email) person.email = email;
         if (phone && !person.phone) person.phone = phone;
         if (location && !person.location) person.location = location;
+        if (subCoords) {
+          if (!person.coordinates) person.coordinates = [];
+          person.coordinates.push(subCoords);
+        }
       } else {
         peopleMap.set(linkKey, {
           id: linkKey,
@@ -74,6 +85,7 @@ export const useInvestigation = () => {
           email,
           phone,
           location,
+          coordinates: subCoords ? [subCoords] : [],
           submissions: [sub],
           reliability: 70 + Math.random() * 20, // Mock reliability for UI
         });

@@ -4,12 +4,18 @@ import { useJotform } from '@/hooks/useJotform';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Skeleton } from '@/components/Skeleton';
-import { ArrowLeft, Table, Layout, Calendar, MessageSquare, Search, FileText, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Table, Layout, Calendar, MessageSquare, Search, FileText, ChevronRight, MapPin } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { Input } from '@/components/Input';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Modal } from '@/components/Modal';
+import dynamic from 'next/dynamic';
+
+const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), { 
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-gray-400">Loading Map...</div>
+});
 
 export default function FormDetail() {
   const { id } = useParams();
@@ -33,6 +39,20 @@ export default function FormDetail() {
       ) || sub.id.toLowerCase().includes(subSearch.toLowerCase())
     );
   }, [formData, subSearch]);
+
+  const submissionCoordinates = useMemo(() => {
+    if (!selectedSubmission) return null;
+    const coordsAnswer: any = Object.values(selectedSubmission.answers).find((ans: any) => 
+      ans.text.toLowerCase().includes('koordinat') || ans.text.toLowerCase().includes('coordinate')
+    );
+    if (coordsAnswer && typeof coordsAnswer.answer === 'string') {
+      const parts = coordsAnswer.answer.split(',').map(p => parseFloat(p.trim()));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        return { lat: parts[0], lng: parts[1] };
+      }
+    }
+    return null;
+  }, [selectedSubmission]);
 
   if (loading) {
     return (
@@ -313,7 +333,6 @@ export default function FormDetail() {
                 <p className="text-sm font-medium">{selectedSubmission.ip}</p>
               </div>
             </div>
-            
             <div className="space-y-4">
               <h4 className="font-bold text-gray-900 border-b pb-2">Form Responses</h4>
               {Object.values(selectedSubmission.answers).map((ans: any) => (
@@ -323,6 +342,21 @@ export default function FormDetail() {
                 </div>
               ))}
             </div>
+
+            {submissionCoordinates && (
+              <div className="space-y-4">
+                <h4 className="font-bold text-gray-900 border-b pb-2 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Geographic Intelligence
+                </h4>
+                <div className="h-64 w-full">
+                  <InvestigationMap 
+                    coordinates={[{ ...submissionCoordinates, label: 'Lead Location' }]} 
+                    zoom={15}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </Modal>
