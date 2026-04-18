@@ -38,6 +38,15 @@ export const PersonaDetails = ({ person, showTimeline = true }: PersonaDetailsPr
             <div className="flex-grow">
                <div className="flex items-center gap-3 mb-2">
                   <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 uppercase">Tactical Identity</span>
+                  {person.relationToPodo && person.relationToPodo !== 'none' && (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${
+                      person.relationToPodo === 'direct' ? 'bg-red-600 text-white border-red-700' :
+                      person.relationToPodo === 'shadow' ? 'bg-primary text-white border-primary/80' :
+                      'bg-blue-600 text-white border-blue-700'
+                    }`}>
+                      Relation: {person.relationToPodo}
+                    </span>
+                  )}
                   <span className="text-[10px] font-bold text-muted bg-gray-100 px-2 py-0.5 rounded-full">REL_INDEX: {person.reliability.toFixed(1)}%</span>
                </div>
                <h2 className="text-4xl font-black text-foreground leading-tight">{person.name}</h2>
@@ -208,14 +217,20 @@ export const PersonaDetails = ({ person, showTimeline = true }: PersonaDetailsPr
               <p className="text-right text-xs font-bold mt-1 text-primary">{person.reliability.toFixed(1)}%</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-                <p className="text-[9px] font-bold text-muted uppercase">Total Submissions</p>
-                <p className="text-xl font-black mt-1">{person.submissions.length}</p>
+            <div className="flex flex-col gap-3">
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between group hover:bg-white/10 transition-colors">
+                <div className="flex flex-col">
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Total Intelligence</p>
+                  <p className="text-[8px] text-muted-foreground uppercase mt-0.5">Submissions Received</p>
+                </div>
+                <p className="text-2xl font-black text-primary">{person.submissions.length}</p>
               </div>
-              <div className="bg-white/5 p-3 rounded-xl border border-white/10">
-                <p className="text-[9px] font-bold text-muted uppercase">Locations Hit</p>
-                <p className="text-xl font-black mt-1">{person.coordinates.length}</p>
+              <div className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between group hover:bg-white/10 transition-colors">
+                <div className="flex flex-col">
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Operational Area</p>
+                  <p className="text-[8px] text-muted-foreground uppercase mt-0.5">Distinct Nodes Hit</p>
+                </div>
+                <p className="text-2xl font-black text-primary">{person.coordinates.length}</p>
               </div>
             </div>
 

@@ -122,7 +122,7 @@ export default function InvestigationPage() {
         <div className="w-full lg:w-1/3 space-y-6">
             <div className="flex flex-col gap-3 flex-grow">
                <Input 
-                 placeholder="Search by name, email..." 
+                 placeholder="Search identities or locations..." 
                  className="bg-card"
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}

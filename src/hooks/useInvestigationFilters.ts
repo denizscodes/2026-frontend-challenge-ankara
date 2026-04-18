@@ -28,15 +28,7 @@ export const useInvestigationFilters = (linkedPeople: LinkedPerson[]) => {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = !searchQuery || 
         person.name.toLowerCase().includes(searchLower) ||
-        (person.email && person.email.toLowerCase().includes(searchLower)) ||
-        (person.phone && person.phone.includes(searchQuery)) ||
-        (person.location && person.location.toLowerCase().includes(searchLower)) ||
-        person.id.toLowerCase().includes(searchLower) ||
-        person.submissions.some(sub => 
-          Object.values(sub.answers).some((ans: any) => 
-            String(ans.answer).toLowerCase().includes(searchLower)
-          )
-        );
+        (person.location && person.location.toLowerCase().includes(searchLower));
       
       // Location Filters
       const matchesLocation = selectedLocations.length === 0 || 

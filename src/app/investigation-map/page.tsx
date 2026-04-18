@@ -44,6 +44,7 @@ export default function InvestigationMapPage() {
 
   const [selectedPerson, setSelectedPerson] = useState<LinkedPerson | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showPodoTrail, setShowPodoTrail] = useState(true);
 
   if (error) {
     return (
@@ -59,10 +60,24 @@ export default function InvestigationMapPage() {
     person.coordinates.map(coord => ({
       ...coord,
       label: person.name,
-      isSuspicious: person.suspicionScore > 40 && person.name.toLowerCase() !== 'podo',
-      data: person
+      isSuspicious: person.suspicionScore > 40 && !person.name.toLowerCase().trim().includes('podo'),
+      data: person,
+      timestamp: coord.timestamp
     }))
   );
+
+  const mapPaths = filteredPeople
+    .filter(person => {
+      if (person.coordinates.length <= 1) return false;
+      if (person.name.toLowerCase().trim().includes('podo')) return showPodoTrail;
+      return true;
+    })
+    .map(person => ({
+      id: person.id,
+      coordinates: person.coordinates.map(c => [c.lat, c.lng] as [number, number]),
+      color: person.name.toLowerCase().trim().includes('podo') ? '#ff6100' : (person.suspicionScore > 40 ? '#dc2626' : '#2563eb'),
+      label: person.name
+    }));
 
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">
@@ -89,30 +104,11 @@ export default function InvestigationMapPage() {
               <div className="space-y-4">
                 <p className="text-[10px] font-bold text-muted uppercase tracking-widest px-1">Global Intelligence Search</p>
                 <Input 
-                  placeholder="Search identities, emails..." 
+                  placeholder="Search identities or locations..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   icon={<Search className="h-4 w-4" />}
                 />
-              </div>
-
-              <div className="space-y-4">
-                <p className="text-[10px] font-bold text-muted uppercase tracking-widest px-1">Sort Intelligence</p>
-                <div className="flex flex-wrap gap-1.5 p-1 bg-background rounded-xl border border-border">
-                  {(['recent', 'name', 'suspicion', 'reliability'] as const).map(s => (
-                    <button
-                      key={s}
-                      onClick={() => setSortBy(s)}
-                      className={`text-[9px] flex-grow px-2 py-1.5 rounded-lg border transition-all font-bold uppercase ${
-                        sortBy === s 
-                          ? 'bg-primary border-primary text-white shadow-sm' 
-                          : 'bg-card border-border text-muted hover:bg-muted'
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div className="space-y-4">
@@ -155,6 +151,33 @@ export default function InvestigationMapPage() {
                       {loc}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-[10px] font-bold text-muted uppercase tracking-widest px-1">Tactical Overlays</p>
+                <div 
+                  onClick={() => setShowPodoTrail(!showPodoTrail)}
+                  className={`group cursor-pointer w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
+                    showPodoTrail 
+                      ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(255,97,0,0.1)]' 
+                      : 'bg-card border-border hover:border-muted-foreground/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg transition-colors ${showPodoTrail ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
+                      <Zap className="h-4 w-4" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className={`text-xs font-black uppercase tracking-tight ${showPodoTrail ? 'text-primary' : 'text-foreground'}`}>
+                        Podo's Active Trail
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-medium">Live movement tracking</span>
+                    </div>
+                  </div>
+                  <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${showPodoTrail ? 'bg-primary' : 'bg-muted'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 transform ${showPodoTrail ? 'translate-x-6' : 'translate-x-0'}`} />
+                  </div>
                 </div>
               </div>
 
@@ -210,6 +233,7 @@ export default function InvestigationMapPage() {
         <div className="absolute inset-0 z-10">
           <InvestigationMap 
             coordinates={mapCoordinates}
+            paths={mapPaths}
             zoom={12}
             onMarkerClick={(person) => setSelectedPerson(person)}
           />
@@ -225,6 +249,10 @@ export default function InvestigationMapPage() {
            <div className="flex items-center gap-3">
               <div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-sm" />
               <span className="text-xs font-bold text-foreground">Intelligence Node</span>
+           </div>
+           <div className="flex items-center gap-3">
+              <div className="w-6 h-1 border-t-2 border-dashed border-primary/60" />
+              <span className="text-xs font-bold text-foreground">Movement Path</span>
            </div>
            <div className="mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-[9px] text-muted">
