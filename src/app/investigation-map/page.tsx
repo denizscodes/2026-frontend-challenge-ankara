@@ -16,9 +16,18 @@ import {
   Zap,
   Fingerprint
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useActiveTrail } from '@/hooks/useActiveTrail';
+import { 
+  Play, 
+  Pause, 
+  SkipBack, 
+  SkipForward, 
+  RotateCcw,
+  Clock
+} from 'lucide-react';
 
 const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), { 
   ssr: false,
@@ -44,7 +53,24 @@ export default function InvestigationMapPage() {
 
   const [selectedPerson, setSelectedPerson] = useState<LinkedPerson | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [showPodoTrail, setShowPodoTrail] = useState(true);
+  const [isTrailModeActive, setIsTrailModeActive] = useState(false);
+
+  const podoPersona = useMemo(() => 
+    linkedPeople.find(p => p.name.toLowerCase().trim().includes('podo')),
+    [linkedPeople]
+  );
+
+  const {
+    currentStep,
+    totalSteps,
+    isPlaying,
+    nextStep,
+    prevStep,
+    reset,
+    togglePlay,
+    activeCoordinates: podoTrailCoords,
+    lastCoordinate: lastPodoCoord,
+  } = useActiveTrail(podoPersona?.coordinates || []);
 
   if (error) {
     return (
@@ -56,28 +82,86 @@ export default function InvestigationMapPage() {
     );
   }
 
-  const mapCoordinates = filteredPeople.flatMap(person => 
-    person.coordinates.map(coord => ({
-      ...coord,
-      label: person.name,
-      isSuspicious: person.suspicionScore > 40 && !person.name.toLowerCase().trim().includes('podo'),
-      data: person,
-      timestamp: coord.timestamp
-    }))
-  );
+  const mapCoordinates = useMemo(() => {
+    if (isTrailModeActive && podoPersona && lastPodoCoord) {
+      // ONLY show the current Podo marker, hide everyone else for focus
+      return [{
+        ...lastPodoCoord,
+        label: 'PODO (CURRENT LOCATION)',
+        isSuspicious: false,
+        isPodo: true,
+        data: podoPersona,
+        timestamp: lastPodoCoord.timestamp
+      }];
+    }
 
-  const mapPaths = filteredPeople
-    .filter(person => {
-      if (person.coordinates.length <= 1) return false;
-      if (person.name.toLowerCase().trim().includes('podo')) return showPodoTrail;
-      return true;
-    })
-    .map(person => ({
-      id: person.id,
-      coordinates: person.coordinates.map(c => [c.lat, c.lng] as [number, number]),
-      color: person.name.toLowerCase().trim().includes('podo') ? '#ff6100' : (person.suspicionScore > 40 ? '#dc2626' : '#2563eb'),
-      label: person.name
-    }));
+    const baseCoords = filteredPeople
+      .filter(p => !p.name.toLowerCase().trim().includes('podo'))
+      .flatMap(person => 
+        person.coordinates.map(coord => ({
+          ...coord,
+          label: person.name,
+          isSuspicious: person.suspicionScore > 40,
+          data: person,
+          timestamp: coord.timestamp
+        }))
+      );
+
+    const podoCoords = podoPersona?.coordinates.map(coord => ({
+      ...coord,
+      label: 'PODO',
+      isSuspicious: false,
+      isPodo: true,
+      data: podoPersona,
+      timestamp: coord.timestamp
+    })) || [];
+    
+    return [...baseCoords, ...podoCoords];
+  }, [filteredPeople, isTrailModeActive, podoPersona, lastPodoCoord]);
+
+  const mapPaths = useMemo(() => {
+    const basePaths = filteredPeople
+      .filter(person => person.coordinates.length > 1 && !person.name.toLowerCase().trim().includes('podo'))
+      .map(person => ({
+        id: person.id,
+        coordinates: person.coordinates.map(c => [c.lat, c.lng] as [number, number]),
+        color: person.suspicionScore > 40 ? '#dc2626' : '#2563eb',
+        label: person.name
+      }));
+
+    if (!podoPersona || podoPersona.coordinates.length <= 1) return basePaths;
+
+    if (!isTrailModeActive) {
+      return [
+        ...basePaths,
+        {
+          id: podoPersona.id,
+          coordinates: podoPersona.coordinates.map(c => [c.lat, c.lng] as [number, number]),
+          color: '#ff6100',
+          label: 'PODO FULL TRAIL'
+        }
+      ];
+    }
+
+    // In Trail Mode, progressive path ONLY for focus
+    if (podoTrailCoords.length <= 1) return [];
+
+    return [
+      {
+        id: 'podo-active-trail',
+        coordinates: podoTrailCoords.map(c => [c.lat, c.lng] as [number, number]),
+        color: '#ff6100',
+        label: `PODO TRAIL (Step ${currentStep + 1}/${totalSteps})`
+      }
+    ];
+  }, [filteredPeople, isTrailModeActive, podoPersona, podoTrailCoords, currentStep, totalSteps]);
+
+  const activeCenter = useMemo((): [number, number] | undefined => {
+    if (isTrailModeActive && lastPodoCoord) {
+      return [lastPodoCoord.lat, lastPodoCoord.lng];
+    }
+    return undefined;
+  }, [isTrailModeActive, lastPodoCoord]);
 
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">
@@ -157,28 +241,103 @@ export default function InvestigationMapPage() {
               <div className="space-y-4">
                 <p className="text-[10px] font-bold text-muted uppercase tracking-widest px-1">Tactical Overlays</p>
                 <div 
-                  onClick={() => setShowPodoTrail(!showPodoTrail)}
+                  onClick={() => {
+                    setIsTrailModeActive(!isTrailModeActive);
+                    if (!isTrailModeActive) reset();
+                  }}
                   className={`group cursor-pointer w-full flex items-center justify-between p-4 rounded-2xl border transition-all duration-300 ${
-                    showPodoTrail 
+                    isTrailModeActive 
                       ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(255,97,0,0.1)]' 
                       : 'bg-card border-border hover:border-muted-foreground/30'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg transition-colors ${showPodoTrail ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
+                    <div className={`p-2 rounded-lg transition-colors ${isTrailModeActive ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
                       <Zap className="h-4 w-4" />
                     </div>
                     <div className="flex flex-col">
-                      <span className={`text-xs font-black uppercase tracking-tight ${showPodoTrail ? 'text-primary' : 'text-foreground'}`}>
+                      <span className={`text-xs font-black uppercase tracking-tight ${isTrailModeActive ? 'text-primary' : 'text-foreground'}`}>
                         Podo's Active Trail
                       </span>
                       <span className="text-[10px] text-muted-foreground font-medium">Live movement tracking</span>
                     </div>
                   </div>
-                  <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${showPodoTrail ? 'bg-primary' : 'bg-muted'}`}>
-                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 transform ${showPodoTrail ? 'translate-x-6' : 'translate-x-0'}`} />
+                  <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 ${isTrailModeActive ? 'bg-primary' : 'bg-muted'}`}>
+                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-300 transform ${isTrailModeActive ? 'translate-x-6' : 'translate-x-0'}`} />
                   </div>
                 </div>
+
+                {/* Trail Controls - Only visible when Active Trail is on */}
+                <AnimatePresence>
+                  {isTrailModeActive && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="bg-dark text-white p-5 rounded-2xl space-y-4 border border-white/10 shadow-2xl">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-3 w-3 text-primary" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Chronological Playback</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-primary bg-primary/20 px-2 py-0.5 rounded">
+                            {currentStep + 1} / {totalSteps}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-primary"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+                            />
+                          </div>
+                          {lastPodoCoord && (
+                            <p className="text-[9px] text-muted-foreground text-center font-medium">
+                              {new Date(lastPodoCoord.timestamp).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-center gap-4">
+                          <button 
+                            onClick={prevStep}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            title="Previous Step"
+                          >
+                            <SkipBack className="h-4 w-4" />
+                          </button>
+                          
+                          <button 
+                            onClick={togglePlay}
+                            className="w-12 h-12 bg-primary hover:bg-primary/90 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95"
+                          >
+                            {isPlaying ? <Pause className="h-6 w-6 fill-white" /> : <Play className="h-6 w-6 fill-white ml-1" />}
+                          </button>
+
+                          <button 
+                            onClick={nextStep}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            title="Next Step"
+                          >
+                            <SkipForward className="h-4 w-4" />
+                          </button>
+
+                          <button 
+                            onClick={reset}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-muted-foreground"
+                            title="Reset Trail"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="space-y-4">
@@ -234,7 +393,8 @@ export default function InvestigationMapPage() {
           <InvestigationMap 
             coordinates={mapCoordinates}
             paths={mapPaths}
-            zoom={12}
+            center={activeCenter}
+            zoom={isTrailModeActive ? 17 : 12}
             onMarkerClick={(person) => setSelectedPerson(person)}
           />
         </div>

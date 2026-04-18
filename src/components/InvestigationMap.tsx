@@ -13,6 +13,7 @@ interface MapCoordinate {
   lng: number;
   label?: string;
   isSuspicious?: boolean;
+  isPodo?: boolean;
   timestamp?: string;
   data?: any;
 }
@@ -77,16 +78,26 @@ export default function InvestigationMap({
     );
   }
 
-  const createCustomIcon = (isSuspicious: boolean, label?: string) => {
+  const createCustomIcon = (isSuspicious: boolean, isPodo: boolean, label?: string) => {
+    let colorClass = 'bg-blue-600';
+    if (isPodo) colorClass = 'bg-[#ff6100]';
+    else if (isSuspicious) colorClass = 'bg-red-600';
+
+    const pulseClass = isPodo 
+      ? 'absolute -inset-2 bg-[#ff6100] rounded-full animate-ping opacity-30' 
+      : (isSuspicious ? 'absolute -inset-1 bg-red-600 rounded-full animate-ping opacity-25' : '');
+    
+    const pulseHtml = pulseClass ? `<div class="${pulseClass}"></div>` : '';
+
     return L.divIcon({
       className: 'custom-marker',
       html: `
         <div class="relative group">
           <div class="absolute -translate-x-1/2 -translate-y-1/2">
-            <div class="w-8 h-8 rounded-full ${isSuspicious ? 'bg-red-600' : 'bg-blue-600'} border-4 border-white shadow-lg flex items-center justify-center transition-all duration-300 group-hover:scale-125 group-hover:shadow-2xl">
+            <div class="w-8 h-8 rounded-full ${colorClass} border-4 border-white shadow-lg flex items-center justify-center transition-all duration-300 group-hover:scale-125 group-hover:shadow-2xl">
               <div class="w-2 h-2 rounded-full bg-white"></div>
             </div>
-            ${isSuspicious ? '<div class="absolute -inset-1 bg-red-600 rounded-full animate-ping opacity-25"></div>' : ''}
+            ${pulseHtml}
           </div>
         </div>
       `,
@@ -112,14 +123,13 @@ export default function InvestigationMap({
   };
 
   const hasCoordinates = coordinates.length > 0;
-  const mapCenter: [number, number] = hasCoordinates && !isNaN(coordinates[0].lat) && !isNaN(coordinates[0].lng)
+  const mapCenter: [number, number] = center || (hasCoordinates && !isNaN(coordinates[0].lat) && !isNaN(coordinates[0].lng)
     ? [coordinates[0].lat, coordinates[0].lng] 
-    : center;
+    : [39.9334, 32.8597]);
 
   return (
     <div className="h-full w-full rounded-2xl overflow-hidden border border-border shadow-inner bg-background relative z-0 min-h-[400px]">
       <MapContainer 
-        key={`${mapCenter[0]}-${mapCenter[1]}`}
         center={mapCenter} 
         zoom={zoom} 
         scrollWheelZoom={true} 
@@ -159,9 +169,11 @@ export default function InvestigationMap({
                 <Marker 
                   key={`marker-${idx}-${coord.lat}-${coord.lng}`} 
                   position={[coord.lat, coord.lng]} 
-                  icon={createCustomIcon(!!coord.isSuspicious, coord.label)}
+                  icon={createCustomIcon(!!coord.isSuspicious, !!coord.isPodo, coord.label)}
                   // @ts-ignore
                   isSuspicious={!!coord.isSuspicious}
+                  // @ts-ignore
+                  isPodo={!!coord.isPodo}
                   eventHandlers={{
                     click: () => {
                       if (onMarkerClick && coord.data) {
