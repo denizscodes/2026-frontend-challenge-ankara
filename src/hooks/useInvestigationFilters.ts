@@ -12,6 +12,8 @@ export const useInvestigationFilters = (linkedPeople: LinkedPerson[]) => {
   const [keywordFilter, setKeywordFilter] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'matched' | 'with_coords'>('all');
 
+  const [sortBy, setSortBy] = useState<'name' | 'suspicion' | 'reliability' | 'recent'>('recent');
+
   const availableLocations = useMemo(() => {
     const locs = new Set<string>();
     linkedPeople.forEach(p => {
@@ -21,7 +23,7 @@ export const useInvestigationFilters = (linkedPeople: LinkedPerson[]) => {
   }, [linkedPeople]);
 
   const filteredPeople = useMemo(() => {
-    return linkedPeople.filter(person => {
+    let result = linkedPeople.filter(person => {
       // Global Deep-Search Filters
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = !searchQuery || 
@@ -71,7 +73,24 @@ export const useInvestigationFilters = (linkedPeople: LinkedPerson[]) => {
       return matchesSearch && matchesType && matchesLocation && 
              matchesTime && matchesSuspicion && matchesReliability && matchesKeywords;
     });
-  }, [linkedPeople, searchQuery, filterType, selectedLocations, timeFilter, minSuspicion, maxSuspicion, minReliability, maxReliability, keywordFilter]);
+
+    // Sorting Logic
+    return result.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'suspicion':
+          return b.suspicionScore - a.suspicionScore;
+        case 'reliability':
+          return b.reliability - a.reliability;
+        case 'recent':
+        default:
+          const dateA = new Date(Math.max(...a.submissions.map(s => new Date(s.created_at).getTime()))).getTime();
+          const dateB = new Date(Math.max(...b.submissions.map(s => new Date(s.created_at).getTime()))).getTime();
+          return dateB - dateA;
+      }
+    });
+  }, [linkedPeople, searchQuery, filterType, selectedLocations, timeFilter, minSuspicion, maxSuspicion, minReliability, maxReliability, keywordFilter, sortBy]);
 
   return {
     searchQuery,
@@ -92,6 +111,8 @@ export const useInvestigationFilters = (linkedPeople: LinkedPerson[]) => {
     setKeywordFilter,
     filterType,
     setFilterType,
+    sortBy,
+    setSortBy,
     availableLocations,
     filteredPeople,
   };

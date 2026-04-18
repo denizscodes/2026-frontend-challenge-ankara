@@ -37,6 +37,7 @@ export default function InvestigationMapPage() {
     maxReliability, setMaxReliability,
     keywordFilter, setKeywordFilter,
     filterType, setFilterType,
+    sortBy, setSortBy,
     availableLocations,
     filteredPeople,
   } = useInvestigationFilters(linkedPeople);
@@ -93,6 +94,25 @@ export default function InvestigationMapPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   icon={<Search className="h-4 w-4" />}
                 />
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-[10px] font-bold text-muted uppercase tracking-widest px-1">Sort Intelligence</p>
+                <div className="flex flex-wrap gap-1.5 p-1 bg-background rounded-xl border border-border">
+                  {(['recent', 'name', 'suspicion', 'reliability'] as const).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setSortBy(s)}
+                      className={`text-[9px] flex-grow px-2 py-1.5 rounded-lg border transition-all font-bold uppercase ${
+                        sortBy === s 
+                          ? 'bg-primary border-primary text-white shadow-sm' 
+                          : 'bg-card border-border text-muted hover:bg-muted'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="space-y-4">

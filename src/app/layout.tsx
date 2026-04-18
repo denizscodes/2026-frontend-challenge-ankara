@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Missing Podo | Investigation Dashboard",
   description: "Help us find Podo. Track leads, sightings, and messages in real-time.",
   icons: {
-    icon: "/podo.png",
+    icon: "/favicon.png",
   },
 };
 

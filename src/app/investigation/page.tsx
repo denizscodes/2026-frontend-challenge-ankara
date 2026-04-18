@@ -9,28 +9,18 @@ import { Skeleton } from '@/components/Skeleton';
 import { 
   Users, 
   Search, 
-  Filter, 
   Zap, 
   Database, 
   ChevronRight, 
   Mail, 
   Phone, 
   Calendar, 
-  ExternalLink,
-  MapPin,
-  Clock,
+  MapPin, 
   Fingerprint
 } from 'lucide-react';
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Modal } from '@/components/Modal';
 import { PersonaDetails } from '@/components/PersonaDetails';
-import dynamic from 'next/dynamic';
-
-const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), { 
-  ssr: false,
-  loading: () => <div className="h-full w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-muted">Loading Map...</div>
-});
 
 export default function InvestigationPage() {
   const { linkedPeople, totalLeads, matchedCount, loading, error, refetch } = useInvestigation();
@@ -42,8 +32,8 @@ export default function InvestigationPage() {
     maxSuspicion, setMaxSuspicion,
     minReliability, setMinReliability,
     maxReliability, setMaxReliability,
-    keywordFilter, setKeywordFilter,
     filterType, setFilterType,
+    sortBy, setSortBy,
     availableLocations,
     filteredPeople,
   } = useInvestigationFilters(linkedPeople);
@@ -164,14 +154,6 @@ export default function InvestigationPage() {
                        ))
                      )}
                   </div>
-                  {selectedLocations.length > 0 && (
-                    <button 
-                      onClick={() => setSelectedLocations([])}
-                      className="text-[9px] text-primary font-bold uppercase text-right px-1 hover:underline"
-                    >
-                      Clear Locations ({selectedLocations.length})
-                    </button>
-                  )}
                </div>
 
                <div className="grid grid-cols-2 gap-3 bg-background/50 p-4 rounded-xl border border-border">
@@ -214,7 +196,7 @@ export default function InvestigationPage() {
                </div>
                
                <div className="flex items-center gap-2 bg-background/50 p-3 rounded-xl border border-border">
-                  <span className="text-[10px] font-bold text-muted uppercase mr-auto">Time Window:</span>
+                  <span className="text-[10px] font-bold text-muted uppercase mr-auto">Time:</span>
                   {(['all', '24h', '48h'] as const).map(t => (
                     <button 
                       key={t}
@@ -228,88 +210,97 @@ export default function InvestigationPage() {
                   ))}
                </div>
             </div>
-          <div className="flex flex-wrap gap-2 px-1">
-            <Button 
-              variant={filterType === 'all' ? 'dark' : 'outline'} 
-              size="sm" 
-              className="text-[10px] h-7 px-3 uppercase font-bold tracking-wider"
-              onClick={() => setFilterType('all')}
-            >
-              All
-            </Button>
-            <Button 
-              variant={filterType === 'matched' ? 'dark' : 'outline'} 
-              size="sm" 
-              className="text-[10px] h-7 px-3 uppercase font-bold tracking-wider"
-              onClick={() => setFilterType('matched')}
-            >
-              Matched Only
-            </Button>
-            <Button 
-              variant={filterType === 'with_coords' ? 'dark' : 'outline'} 
-              size="sm" 
-              className="text-[10px] h-7 px-3 uppercase font-bold tracking-wider"
-              onClick={() => setFilterType('with_coords')}
-            >
-              Has Coords
-            </Button>
-          </div>
 
-          <div className="space-y-3">
-            <h2 className="text-sm font-bold text-muted uppercase tracking-widest px-2">Personas ({filteredPeople.length})</h2>
-            <div className="max-h-[400px] lg:max-h-[calc(100vh-450px)] overflow-y-auto pr-2 custom-scrollbar space-y-3">
-              {loading ? (
-                [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
-              ) : filteredPeople.length === 0 ? (
-                <div className="p-12 text-center border-2 border-dashed border-border rounded-2xl">
-                  <p className="text-muted">No identities found.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-3">
-                {filteredPeople.map((person) => (
-                  <button
-                    key={person.id}
-                    onClick={() => setSelectedPerson(person)}
-                    className={`text-left p-4 rounded-xl border transition-all hover:shadow-md group relative overflow-hidden ${
-                      selectedPerson?.id === person.id 
-                        ? 'bg-card border-primary ring-1 ring-primary shadow-lg' 
-                        : person.suspicionScore > 40 && person.name.toLowerCase() !== 'podo' ? 'bg-card border-red-500' : 'bg-card border-border'
-                    }`}
-                  >
-                    {person.submissions.length > 1 && (
-                      <div className="absolute top-0 right-0 bg-blue-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg">
-                        {person.submissions.length} Matches
-                      </div>
-                    )}
-                    {person.suspicionScore > 40 && person.name.toLowerCase() !== 'podo' && (
-                      <div className="absolute top-0 left-0 bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded-br-lg animate-pulse">
-                        HIGH SUSPICION: {person.suspicionScore}%
-                      </div>
-                    )}
-                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                      {person.name}
-                      {person.suspicionScore > 70 && <Zap className="h-3 w-3 text-red-600 fill-red-600" />}
-                    </h3>
-                    <div className="flex flex-col gap-1 mt-2">
-                       {person.email && (
-                         <span className="text-[10px] text-muted flex items-center gap-1">
-                           <Mail className="h-3 w-3" /> {person.email}
-                         </span>
-                       )}
-                       {person.phone && (
-                         <span className="text-[10px] text-muted flex items-center gap-1">
-                           <Phone className="h-3 w-3" /> {person.phone}
-                         </span>
-                       )}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
-                       <span className="text-[9px] font-mono text-muted bg-background px-1.5 py-0.5 rounded uppercase">ID: {person.id.slice(0, 8)}...</span>
-                       <ChevronRight className={`h-4 w-4 transition-transform ${selectedPerson?.id === person.id ? 'text-primary translate-x-1' : 'text-muted'}`} />
-                    </div>
-                  </button>
-                ))}
+          <div className="space-y-4 pt-4 border-t border-border">
+            <div className="flex items-center justify-between px-2">
+               <h2 className="text-[10px] font-bold text-muted uppercase tracking-widest">Sort Intelligence</h2>
+               <div className="flex gap-1">
+                  {(['recent', 'name', 'suspicion', 'reliability'] as const).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setSortBy(s)}
+                      className={`text-[8px] px-2 py-1 rounded-md border transition-all font-bold uppercase ${
+                        sortBy === s 
+                          ? 'bg-primary border-primary text-white' 
+                          : 'bg-background border-border text-muted hover:bg-muted'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+               </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 px-1">
+              {(['all', 'matched', 'with_coords'] as const).map(t => (
+                <Button 
+                  key={t}
+                  variant={filterType === t ? 'dark' : 'outline'} 
+                  size="sm" 
+                  className="text-[10px] h-7 px-3 uppercase font-bold tracking-wider"
+                  onClick={() => setFilterType(t)}
+                >
+                  {t.replace('_', ' ')}
+                </Button>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <h2 className="text-sm font-bold text-muted uppercase tracking-widest px-2 pt-2">Personas ({filteredPeople.length})</h2>
+              <div className="max-h-[500px] lg:max-h-[calc(100vh-620px)] overflow-y-auto pr-2 custom-scrollbar space-y-3">
+                {loading ? (
+                  [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
+                ) : filteredPeople.length === 0 ? (
+                  <div className="p-12 text-center border-2 border-dashed border-border rounded-2xl">
+                    <p className="text-muted">No identities found.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3">
+                    {filteredPeople.map((person) => (
+                      <button
+                        key={person.id}
+                        onClick={() => setSelectedPerson(person)}
+                        className={`text-left p-4 rounded-xl border transition-all hover:shadow-md group relative overflow-hidden ${
+                          selectedPerson?.id === person.id 
+                            ? 'bg-card border-primary ring-1 ring-primary shadow-lg' 
+                            : person.suspicionScore > 40 && person.name.toLowerCase() !== 'podo' ? 'bg-card border-red-500' : 'bg-card border-border'
+                        }`}
+                      >
+                        {person.submissions.length > 1 && (
+                          <div className="absolute top-0 right-0 bg-blue-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg">
+                            {person.submissions.length} Matches
+                          </div>
+                        )}
+                        {person.suspicionScore > 40 && person.name.toLowerCase() !== 'podo' && (
+                          <div className="absolute top-0 left-0 bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded-br-lg animate-pulse">
+                            {person.suspicionScore}%
+                          </div>
+                        )}
+                        <h3 className="font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                          {person.name}
+                          {person.suspicionScore > 70 && <Zap className="h-3 w-3 text-red-600 fill-red-600" />}
+                        </h3>
+                        <div className="flex flex-col gap-1 mt-2">
+                           {person.email && (
+                             <span className="text-[10px] text-muted flex items-center gap-1">
+                               <Mail className="h-3 w-3" /> {person.email}
+                             </span>
+                           )}
+                           {person.location && (
+                             <span className="text-[10px] text-muted flex items-center gap-1">
+                               <MapPin className="h-3 w-3" /> {person.location}
+                             </span>
+                           )}
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
+                           <span className="text-[9px] font-mono text-muted bg-background px-1.5 py-0.5 rounded uppercase">ID: {person.id.slice(0, 8)}</span>
+                           <ChevronRight className={`h-4 w-4 transition-transform ${selectedPerson?.id === person.id ? 'text-primary translate-x-1' : 'text-muted'}`} />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
             </div>
           </div>
         </div>

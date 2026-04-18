@@ -200,7 +200,7 @@ export default function FormDetail() {
                             IP: {sub.ip}
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-background/50 p-4 rounded-lg border border-gray-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-background/50 p-4 rounded-lg border border-gray-100 mb-4">
                           {Object.entries(sub.answers).slice(0, 4).map(([answerId, ans]: [string, any]) => (
                             <div key={answerId}>
 
@@ -209,6 +209,47 @@ export default function FormDetail() {
                             </div>
                           ))}
                         </div>
+
+                        {/* Primary Content Preview */}
+                        {(() => {
+                          const getPrimaryContent = () => {
+                            const answers = sub.answers;
+                            const title = form.title.toLowerCase();
+                            const fieldMap: Record<string, string[]> = {
+                              'checkins': ['note'],
+                              'messages': ['text', 'mesaj'],
+                              'sightings': ['note', 'sighting details'],
+                              'personal notes': ['note'],
+                              'tips': ['tip', 'bilgi']
+                            };
+
+                            for (const [key, fields] of Object.entries(fieldMap)) {
+                              if (title.includes(key)) {
+                                for (const field of fields) {
+                                  const match = Object.values(answers).find((a: any) => a.text.toLowerCase().includes(field));
+                                  if (match && match.answer) return match.answer;
+                                }
+                              }
+                            }
+                            const fallback = Object.values(answers).find((a: any) => 
+                              a.text.toLowerCase().includes('note') || 
+                              a.text.toLowerCase().includes('text') ||
+                              a.text.toLowerCase().includes('tip')
+                            );
+                            return fallback?.answer || null;
+                          };
+
+                          const content = getPrimaryContent();
+                          if (!content) return null;
+
+                          return (
+                            <div className="mb-4 p-4 rounded-xl bg-primary/5 border border-primary/20 relative overflow-hidden">
+                               <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+                              
+                               <p className="text-sm text-foreground font-medium italic leading-relaxed">"{content}"</p>
+                            </div>
+                          );
+                        })()}
                         <div className="mt-4 flex justify-end">
                           <Button 
                             variant="ghost" 

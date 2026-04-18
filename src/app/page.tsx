@@ -96,10 +96,7 @@ export default function Home() {
             className="bg-card border-primary/20 focus:border-primary shadow-sm"
           />
           <div className="flex gap-2 shrink-0">
-            <Button variant="dark" className="flex-1 sm:flex-none">
-              <Filter className="mr-2 h-4 w-4 text-primary" />
-              Filter
-            </Button>
+            
             {searchQuery && (
               <Button 
                 variant="outline" 
@@ -173,6 +170,51 @@ export default function Home() {
                     <p className="mb-4 text-[10px] text-muted font-mono tracking-widest uppercase opacity-60">
                       REF: {item.form.id}
                     </p>
+
+                    {/* Latest Intelligence Preview */}
+                    {(() => {
+                      const latestSub = item.submissions[0];
+                      if (!latestSub) return null;
+
+                      const getPrimaryContent = () => {
+                        const answers = latestSub.answers;
+                        const title = item.form.title.toLowerCase();
+                        const fieldMap: Record<string, string[]> = {
+                          'checkins': ['note'],
+                          'messages': ['text', 'mesaj'],
+                          'sightings': ['note', 'sighting details'],
+                          'personal notes': ['note'],
+                          'tips': ['tip', 'bilgi']
+                        };
+
+                        for (const [key, fields] of Object.entries(fieldMap)) {
+                          if (title.includes(key)) {
+                            for (const field of fields) {
+                              const match = Object.values(answers).find((a: any) => a.text.toLowerCase().includes(field));
+                              if (match && match.answer) return match.answer;
+                            }
+                          }
+                        }
+                        const fallback = Object.values(answers).find((a: any) => 
+                          a.text.toLowerCase().includes('note') || 
+                          a.text.toLowerCase().includes('text') ||
+                          a.text.toLowerCase().includes('tip')
+                        );
+                        return fallback?.answer || null;
+                      };
+
+                      const content = getPrimaryContent();
+                      if (!content) return null;
+
+                      return (
+                        <div className="mb-6 p-3 rounded-lg bg-background border border-border shadow-sm">
+                           <p className="text-[9px] font-black text-primary uppercase mb-1 flex items-center gap-1">
+                              <MessageSquare className="h-3 w-3" /> Latest Intel
+                           </p>
+                           <p className="text-xs text-foreground italic line-clamp-2">"{content}"</p>
+                        </div>
+                      );
+                    })()}
                   </div>
 
 
