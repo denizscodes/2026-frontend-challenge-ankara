@@ -29,15 +29,15 @@ export const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl pointer-events-auto overflow-hidden flex flex-col max-h-[90vh]"
+              className="w-full max-w-2xl bg-card rounded-2xl shadow-2xl pointer-events-auto overflow-hidden flex flex-col max-h-[90vh]"
             >
               <div className="flex items-center justify-between px-6 py-4 border-b">
-                <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+                <h3 className="text-xl font-bold text-foreground">{title}</h3>
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 >
-                  <X className="h-5 w-5 text-gray-500" />
+                  <X className="h-5 w-5 text-muted" />
                 </button>
               </div>
               <div className="flex-grow overflow-y-auto p-6 custom-scrollbar">

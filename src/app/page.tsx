@@ -30,8 +30,8 @@ export default function Home() {
         <div className="mb-4 rounded-full bg-red-100 p-4 text-red-600">
           <RefreshCcw className="h-12 w-12" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Oops! Something went wrong</h2>
-        <p className="mt-2 max-w-md text-gray-500">{error}</p>
+        <h2 className="text-2xl font-bold text-foreground">Oops! Something went wrong</h2>
+        <p className="mt-2 max-w-md text-muted">{error}</p>
         <Button className="mt-6" onClick={refetch}>
           Try Again
         </Button>
@@ -41,18 +41,18 @@ export default function Home() {
 
   return (
     <div className="mx-auto max-w-7xl px-8 py-12">
-      <header className="mb-12 flex flex-col justify-between gap-6 lg:flex-row lg:items-center bg-white p-8 rounded-2xl border border-border shadow-sm relative overflow-hidden">
+      <header className="mb-12 flex flex-col justify-between gap-6 lg:flex-row lg:items-center bg-card p-8 rounded-2xl border border-border shadow-sm relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32" />
         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4">
               <span className="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest uppercase">Active Case</span>
-              <span className="text-gray-400 text-xs">#PODO-2026-X</span>
+              <span className="text-muted text-xs">#PODO-2026-X</span>
             </div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
               Investigation Command <span className="text-primary">Center</span>
             </h2>
-            <p className="mt-3 text-lg text-gray-500">
+            <p className="mt-3 text-lg text-muted">
               Analyze intelligence sources, match records, and track Podo's trail across the city.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -79,12 +79,12 @@ export default function Home() {
 
 
       <div className="mb-8 flex items-center justify-between">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+        <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
           <div className="w-2 h-6 bg-primary rounded-full" />
           Intelligence Sources
         </h3>
         <div className="flex gap-2">
-          <span className="text-xs text-gray-500 font-medium">Auto-sync: <span className="text-green-600">ON</span></span>
+          <span className="text-xs text-muted font-medium">Auto-sync: <span className="text-green-600">ON</span></span>
         </div>
       </div>
 
@@ -97,11 +97,11 @@ export default function Home() {
         </div>
       ) : filteredData.length === 0 ? (
         <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border p-12 text-center">
-          <div className="mb-4 text-gray-400">
+          <div className="mb-4 text-muted">
             <FileText className="h-16 w-16" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900">No forms found</h3>
-          <p className="mt-2 text-gray-500">Try adjusting your search or refresh the page.</p>
+          <h3 className="text-xl font-semibold text-foreground">No forms found</h3>
+          <p className="mt-2 text-muted">Try adjusting your search or refresh the page.</p>
           <Button variant="outline" className="mt-6" onClick={() => setSearchQuery('')}>
             Clear Search
           </Button>
@@ -127,23 +127,23 @@ export default function Home() {
                   </div>
                   
                   <div className="flex-grow">
-                    <h3 className="mb-1 text-xl font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
+                    <h3 className="mb-1 text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                       {item.form.title}
                     </h3>
-                    <p className="mb-4 text-xs text-gray-400 font-mono tracking-tight">
+                    <p className="mb-4 text-xs text-muted font-mono tracking-tight">
                       SOURCE ID: {item.form.id}
                     </p>
                   </div>
 
 
                   <div className="mt-auto grid grid-cols-2 gap-4 border-t border-border pt-4">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MessageSquare className="mr-2 h-4 w-4 text-gray-400" />
+                    <div className="flex items-center text-sm text-foreground">
+                      <MessageSquare className="mr-2 h-4 w-4 text-muted" />
                       <span className="font-semibold">{item.submissions.length}</span>
                       <span className="ml-1 opacity-60">subs</span>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="mr-2 h-4 w-4 text-gray-400" />
+                    <div className="flex items-center text-sm text-foreground">
+                      <Clock className="mr-2 h-4 w-4 text-muted" />
                       <span className="font-semibold">{Object.keys(item.questions).length}</span>
                       <span className="ml-1 opacity-60">fields</span>
                     </div>

@@ -14,7 +14,7 @@ import dynamic from 'next/dynamic';
 
 const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), { 
   ssr: false,
-  loading: () => <div className="h-full w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-gray-400">Loading Map...</div>
+  loading: () => <div className="h-full w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center text-muted">Loading Map...</div>
 });
 
 export default function FormDetail() {
@@ -77,8 +77,8 @@ export default function FormDetail() {
         <div className="mb-4 rounded-full bg-red-100 p-4 text-red-600">
           <FileText className="h-12 w-12" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Form not found</h2>
-        <p className="mt-2 text-gray-500">The form you are looking for does not exist or you don't have access.</p>
+        <h2 className="text-2xl font-bold text-foreground">Form not found</h2>
+        <p className="mt-2 text-muted">The form you are looking for does not exist or you don't have access.</p>
         <Button className="mt-6" onClick={() => router.push('/')}>Back to Dashboard</Button>
       </div>
     );
@@ -106,14 +106,14 @@ export default function FormDetail() {
             <span className="text-xs font-bold text-primary uppercase tracking-widest">Case: #PODO-2026</span>
           </div>
         </div>
-        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-border shadow-sm">
+        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card p-6 rounded-2xl border border-border shadow-sm">
           <div>
             <div className="flex items-center gap-3 mb-2">
                <span className="text-[10px] bg-dark text-white px-2 py-0.5 rounded uppercase tracking-tighter font-bold">Intel Channel</span>
                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded border border-primary/20 uppercase font-bold">Live Feed</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">{form.title}</h1>
-            <p className="text-gray-500 mt-1 font-medium flex items-center gap-2">
+            <h1 className="text-3xl font-bold text-foreground">{form.title}</h1>
+            <p className="text-muted mt-1 font-medium flex items-center gap-2">
               <span className="text-xs font-mono">Source ID: {form.id}</span>
               <span className="w-1 h-1 bg-gray-300 rounded-full" />
               <span className="text-xs text-primary font-bold">{submissions.length} Leads Collected</span>
@@ -161,11 +161,11 @@ export default function FormDetail() {
                     animate={{ opacity: 1 }}
                     className="p-16 border-2 border-dashed border-border rounded-2xl text-center"
                   >
-                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-400 mb-4">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-background text-muted mb-4">
                       <MessageSquare className="h-8 w-8" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">No submissions found</h3>
-                    <p className="text-gray-500 mt-1">
+                    <h3 className="text-lg font-semibold text-foreground">No submissions found</h3>
+                    <p className="text-muted mt-1">
                       {subSearch ? "Try adjusting your search filters." : "This form hasn't received any submissions yet."}
                     </p>
                     {subSearch && (
@@ -185,27 +185,27 @@ export default function FormDetail() {
                       <Card className="hover:border-primary/50 transition-all group">
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 font-bold border group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                            <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center text-muted font-bold border group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                               {idx + 1}
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">Submission #{sub.id.slice(-6)}</p>
-                              <p className="text-xs text-gray-500 flex items-center mt-0.5">
+                              <p className="font-semibold text-foreground">Submission #{sub.id.slice(-6)}</p>
+                              <p className="text-xs text-muted flex items-center mt-0.5">
                                 <Calendar className="mr-1 h-3 w-3" />
                                 {new Date(sub.created_at).toLocaleString()}
                               </p>
                             </div>
                           </div>
-                          <span className="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-500 uppercase font-mono border">
+                          <span className="text-[10px] bg-gray-100 px-2 py-1 rounded text-muted uppercase font-mono border">
                             IP: {sub.ip}
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50/50 p-4 rounded-lg border border-gray-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-background/50 p-4 rounded-lg border border-gray-100">
                           {Object.entries(sub.answers).slice(0, 4).map(([answerId, ans]: [string, any]) => (
                             <div key={answerId}>
 
-                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{ans.text}</p>
-                              <p className="text-sm text-gray-700 mt-1 font-medium">{ans.answer || '—'}</p>
+                              <p className="text-[10px] font-bold text-muted uppercase tracking-wider">{ans.text}</p>
+                              <p className="text-sm text-foreground mt-1 font-medium">{ans.answer || '—'}</p>
                             </div>
                           ))}
                         </div>
@@ -236,19 +236,19 @@ export default function FormDetail() {
               Form Structure
             </h2>
             <Card className="p-0 overflow-hidden border-border shadow-sm">
-              <div className="bg-gray-50 px-6 py-3 border-b border-border">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Field List ({Object.keys(questions).length})</p>
+              <div className="bg-background px-6 py-3 border-b border-border">
+                <p className="text-xs font-bold text-muted uppercase tracking-widest">Field List ({Object.keys(questions).length})</p>
               </div>
               <div className="divide-y divide-border max-h-[400px] overflow-y-auto custom-scrollbar">
                 {Object.values(questions).map((q: any) => (
-                  <div key={q.qid} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors">
+                  <div key={q.qid} className="px-6 py-4 flex items-center gap-4 hover:bg-background transition-colors">
                     <div className="h-8 w-8 rounded bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
                       <FileText className="h-4 w-4" />
                     </div>
 
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{q.text}</p>
-                      <p className="text-[10px] text-gray-400 uppercase font-mono tracking-tighter">{q.type}</p>
+                      <p className="text-sm font-semibold text-foreground truncate">{q.text}</p>
+                      <p className="text-[10px] text-muted uppercase font-mono tracking-tighter">{q.type}</p>
                     </div>
                   </div>
                 ))}
@@ -264,15 +264,15 @@ export default function FormDetail() {
             </h2>
             <Card className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Source Quality</span>
+                <span className="text-sm text-muted">Source Quality</span>
                 <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full uppercase border border-green-100">Verified</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Last Intel</span>
-                <span className="text-sm font-semibold text-gray-900">{submissions.length > 0 ? new Date(submissions[0].created_at).toLocaleDateString() : 'N/A'}</span>
+                <span className="text-sm text-muted">Last Intel</span>
+                <span className="text-sm font-semibold text-foreground">{submissions.length > 0 ? new Date(submissions[0].created_at).toLocaleDateString() : 'N/A'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Reliability Index</span>
+                <span className="text-sm text-muted">Reliability Index</span>
                 <span className="text-sm font-bold text-primary">84.2%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
@@ -291,22 +291,22 @@ export default function FormDetail() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full -mr-16 -mt-16 blur-2xl" />
               <p className="text-xs text-primary font-bold uppercase tracking-widest mb-4">Record Linking Active</p>
               <div className="space-y-3 relative z-10">
-                 <div className="p-3 bg-white/10 rounded-lg border border-white/10 flex items-center gap-3">
+                 <div className="p-3 bg-card/10 rounded-lg border border-white/10 flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     <div>
-                       <p className="text-[10px] text-gray-400 font-bold uppercase">Cross-Source Match</p>
+                       <p className="text-[10px] text-muted font-bold uppercase">Cross-Source Match</p>
                        <p className="text-xs font-medium">Potential sighting link in "Sightings" source</p>
                     </div>
                  </div>
-                 <div className="p-3 bg-white/10 rounded-lg border border-white/10 flex items-center gap-3 opacity-60">
-                    <div className="w-2 h-2 rounded-full bg-gray-500" />
+                 <div className="p-3 bg-card/10 rounded-lg border border-white/10 flex items-center gap-3 opacity-60">
+                    <div className="w-2 h-2 rounded-full bg-background0" />
                     <div>
-                       <p className="text-[10px] text-gray-400 font-bold uppercase">Identity Correlation</p>
+                       <p className="text-[10px] text-muted font-bold uppercase">Identity Correlation</p>
                        <p className="text-xs font-medium">Matching phone number in "Messages"</p>
                     </div>
                  </div>
               </div>
-              <Button variant="outline" className="w-full mt-6 border-white/20 text-white hover:bg-white/10 h-9 text-xs">
+              <Button variant="outline" className="w-full mt-6 border-white/20 text-white hover:bg-card/10 h-9 text-xs">
                 Run Cross-Reference
               </Button>
             </Card>
@@ -323,29 +323,29 @@ export default function FormDetail() {
       >
         {selectedSubmission && (
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border">
+            <div className="grid grid-cols-2 gap-4 bg-background p-4 rounded-xl border">
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold">Created At</p>
+                <p className="text-xs text-muted uppercase font-bold">Created At</p>
                 <p className="text-sm font-medium">{new Date(selectedSubmission.created_at).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 uppercase font-bold">IP Address</p>
+                <p className="text-xs text-muted uppercase font-bold">IP Address</p>
                 <p className="text-sm font-medium">{selectedSubmission.ip}</p>
               </div>
             </div>
             <div className="space-y-4">
-              <h4 className="font-bold text-gray-900 border-b pb-2">Form Responses</h4>
+              <h4 className="font-bold text-foreground border-b pb-2">Form Responses</h4>
               {Object.values(selectedSubmission.answers).map((ans: any) => (
-                <div key={ans.text} className="bg-white p-4 rounded-lg border shadow-sm">
+                <div key={ans.text} className="bg-card p-4 rounded-lg border shadow-sm">
                   <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">{ans.text}</p>
-                  <p className="text-gray-700 whitespace-pre-wrap">{ans.answer || <span className="text-gray-300 italic">No response</span>}</p>
+                  <p className="text-foreground whitespace-pre-wrap">{ans.answer || <span className="text-muted italic">No response</span>}</p>
                 </div>
               ))}
             </div>
 
             {submissionCoordinates && (
               <div className="space-y-4">
-                <h4 className="font-bold text-gray-900 border-b pb-2 flex items-center gap-2">
+                <h4 className="font-bold text-foreground border-b pb-2 flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary" />
                   Geographic Intelligence
                 </h4>

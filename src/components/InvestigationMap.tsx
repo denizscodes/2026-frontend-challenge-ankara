@@ -51,7 +51,7 @@ export default function InvestigationMap({ coordinates, center = [39.9334, 32.85
     : center;
 
   return (
-    <div className="h-full w-full rounded-2xl overflow-hidden border border-border shadow-inner bg-gray-50">
+    <div className="h-full w-full rounded-2xl overflow-hidden border border-border shadow-inner bg-background">
       <MapContainer 
         key={`map-${mapKey}`}
         center={actualCenter} 
