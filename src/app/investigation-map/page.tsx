@@ -83,16 +83,16 @@ export default function InvestigationMapPage() {
   }
 
   const mapCoordinates = useMemo(() => {
-    if (isTrailModeActive && podoPersona && lastPodoCoord) {
-      // ONLY show the current Podo marker, hide everyone else for focus
-      return [{
-        ...lastPodoCoord,
-        label: 'PODO (CURRENT LOCATION)',
+    if (isTrailModeActive && podoPersona && podoTrailCoords.length > 0) {
+      // Show ALL coordinates in the trail so far
+      return podoTrailCoords.map((coord, idx) => ({
+        ...coord,
+        label: idx === podoTrailCoords.length - 1 ? 'PODO (LAST SEEN)' : `PODO (Point ${idx + 1})`,
         isSuspicious: false,
         isPodo: true,
         data: podoPersona,
-        timestamp: lastPodoCoord.timestamp
-      }];
+        timestamp: coord.timestamp
+      }));
     }
 
     const baseCoords = filteredPeople
@@ -390,13 +390,24 @@ export default function InvestigationMapPage() {
         )}
 
         <div className="absolute inset-0 z-10">
-          <InvestigationMap 
-            coordinates={mapCoordinates}
-            paths={mapPaths}
-            center={activeCenter}
-            zoom={isTrailModeActive ? 17 : 12}
-            onMarkerClick={(person) => setSelectedPerson(person)}
-          />
+          {(() => {
+            const dynamicZoom = isTrailModeActive 
+              ? (totalSteps > 0 ? 18 + ((currentStep / totalSteps) * 2) : 19) 
+              : 12;
+            
+            return (
+              <InvestigationMap 
+                coordinates={mapCoordinates}
+                paths={mapPaths}
+                center={activeCenter}
+                zoom={dynamicZoom}
+                animate={isTrailModeActive}
+                movementDuration={(2000 * 0.8) / 1000}
+                disableClustering={isTrailModeActive}
+                onMarkerClick={(person) => setSelectedPerson(person)}
+              />
+            );
+          })()}
         </div>
 
         {/* Legend Overlay */}

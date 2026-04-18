@@ -31,6 +31,7 @@ interface InvestigationMapProps {
   center?: [number, number];
   zoom?: number;
   onMarkerClick?: (data: any) => void;
+  disableClustering?: boolean;
 }
 
 function MapContent({ children }: { children: React.ReactNode }) {
@@ -59,7 +60,8 @@ export default function InvestigationMap({
   paths = [],
   center = [39.9334, 32.8597], 
   zoom = 13, 
-  onMarkerClick 
+  onMarkerClick,
+  disableClustering = false
 }: InvestigationMapProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -159,21 +161,108 @@ export default function InvestigationMap({
           ))}
 
           {hasCoordinates && (
-            <MarkerClusterGroup
-              chunkedLoading
-              spiderfyOnMaxZoom={true}
-              showCoverageOnHover={false}
-              iconCreateFunction={createClusterCustomIcon}
-            >
-              {coordinates.map((coord, idx) => (
+            <>
+              {disableClustering ? (
+                coordinates.filter(c => !c.isPodo).map((coord, idx) => (
+                  <Marker 
+                    key={`marker-${idx}-${coord.lat}-${coord.lng}`} 
+                    position={[coord.lat, coord.lng]} 
+                    icon={createCustomIcon(!!coord.isSuspicious, !!coord.isPodo, coord.label)}
+                    eventHandlers={{
+                      click: () => {
+                        if (onMarkerClick && coord.data) {
+                          onMarkerClick(coord.data);
+                        }
+                      },
+                    }}
+                  >
+                    {coord.label && (
+                      <Tooltip direction="top" offset={[0, -20]} opacity={1} permanent={false}>
+                        <div className="px-2 py-1 font-bold text-xs bg-dark text-white rounded shadow-lg border border-white/20">
+                          {coord.label}
+                          {coord.timestamp && <span className="block text-[8px] opacity-70 font-normal">{new Date(coord.timestamp).toLocaleString()}</span>}
+                        </div>
+                      </Tooltip>
+                    )}
+                    <Popup>
+                      <div className="text-xs font-bold text-center p-1">
+                        <p className={coord.isSuspicious ? 'text-red-600' : 'text-blue-600 font-bold'}>
+                          {coord.isSuspicious ? '⚠️ HIGH SUSPICION' : '✓ VERIFIED AGENT'}
+                        </p>
+                        <p className="mt-1 text-dark text-[14px]">{coord.label || 'Anonymous'}</p>
+                        {coord.timestamp && <p className="text-[10px] text-muted mt-1">{new Date(coord.timestamp).toLocaleString()}</p>}
+                        {onMarkerClick && (
+                          <button 
+                            className="mt-3 text-[10px] bg-dark text-white px-3 py-1.5 rounded-lg uppercase font-black w-full hover:bg-primary transition-colors"
+                            onClick={() => onMarkerClick(coord.data)}
+                          >
+                            Analyze Profile
+                          </button>
+                        )}
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))
+              ) : (
+                <MarkerClusterGroup
+                  chunkedLoading
+                  spiderfyOnMaxZoom={true}
+                  showCoverageOnHover={false}
+                  iconCreateFunction={createClusterCustomIcon}
+                >
+                  {coordinates.filter(c => !c.isPodo).map((coord, idx) => (
+                    <Marker 
+                      key={`marker-${idx}-${coord.lat}-${coord.lng}`} 
+                      position={[coord.lat, coord.lng]} 
+                      icon={createCustomIcon(!!coord.isSuspicious, !!coord.isPodo, coord.label)}
+                      // @ts-ignore
+                      isSuspicious={!!coord.isSuspicious}
+                      // @ts-ignore
+                      isPodo={!!coord.isPodo}
+                      eventHandlers={{
+                        click: () => {
+                          if (onMarkerClick && coord.data) {
+                            onMarkerClick(coord.data);
+                          }
+                        },
+                      }}
+                    >
+                      {coord.label && (
+                        <Tooltip direction="top" offset={[0, -20]} opacity={1} permanent={false}>
+                          <div className="px-2 py-1 font-bold text-xs bg-dark text-white rounded shadow-lg border border-white/20">
+                            {coord.label}
+                            {coord.timestamp && <span className="block text-[8px] opacity-70 font-normal">{new Date(coord.timestamp).toLocaleString()}</span>}
+                          </div>
+                        </Tooltip>
+                      )}
+                      <Popup>
+                        <div className="text-xs font-bold text-center p-1">
+                          <p className={coord.isSuspicious ? 'text-red-600' : 'text-blue-600 font-bold'}>
+                            {coord.isSuspicious ? '⚠️ HIGH SUSPICION' : '✓ VERIFIED AGENT'}
+                          </p>
+                          <p className="mt-1 text-dark text-[14px]">{coord.label || 'Anonymous'}</p>
+                          {coord.timestamp && <p className="text-[10px] text-muted mt-1">{new Date(coord.timestamp).toLocaleString()}</p>}
+                          {onMarkerClick && (
+                            <button 
+                              className="mt-3 text-[10px] bg-dark text-white px-3 py-1.5 rounded-lg uppercase font-black w-full hover:bg-primary transition-colors"
+                              onClick={() => onMarkerClick(coord.data)}
+                            >
+                              Analyze Profile
+                            </button>
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MarkerClusterGroup>
+              )}
+
+              {coordinates.filter(c => c.isPodo).map((coord, idx) => (
                 <Marker 
-                  key={`marker-${idx}-${coord.lat}-${coord.lng}`} 
+                  key={`podo-marker-${idx}-${coord.lat}-${coord.lng}`} 
                   position={[coord.lat, coord.lng]} 
-                  icon={createCustomIcon(!!coord.isSuspicious, !!coord.isPodo, coord.label)}
-                  // @ts-ignore
-                  isSuspicious={!!coord.isSuspicious}
-                  // @ts-ignore
-                  isPodo={!!coord.isPodo}
+                  icon={createCustomIcon(false, true, coord.label)}
+                  zIndexOffset={1000}
                   eventHandlers={{
                     click: () => {
                       if (onMarkerClick && coord.data) {
@@ -184,17 +273,15 @@ export default function InvestigationMap({
                 >
                   {coord.label && (
                     <Tooltip direction="top" offset={[0, -20]} opacity={1} permanent={false}>
-                      <div className="px-2 py-1 font-bold text-xs bg-dark text-white rounded shadow-lg border border-white/20">
+                      <div className="px-2 py-1 font-bold text-xs bg-[#ff6100] text-white rounded shadow-lg border border-white/20">
                         {coord.label}
-                        {coord.timestamp && <span className="block text-[8px] opacity-70 font-normal">{new Date(coord.timestamp).toLocaleString()}</span>}
+                        {coord.timestamp && <span className="block text-[8px] opacity-90 font-normal">{new Date(coord.timestamp).toLocaleString()}</span>}
                       </div>
                     </Tooltip>
                   )}
                   <Popup>
                     <div className="text-xs font-bold text-center p-1">
-                      <p className={coord.isSuspicious ? 'text-red-600' : 'text-blue-600 font-bold'}>
-                        {coord.isSuspicious ? '⚠️ HIGH SUSPICION' : '✓ VERIFIED AGENT'}
-                      </p>
+                      <p className="text-[#ff6100] font-bold">PODO ACTIVE</p>
                       <p className="mt-1 text-dark text-[14px]">{coord.label || 'Anonymous'}</p>
                       {coord.timestamp && <p className="text-[10px] text-muted mt-1">{new Date(coord.timestamp).toLocaleString()}</p>}
                       {onMarkerClick && (
@@ -209,7 +296,7 @@ export default function InvestigationMap({
                   </Popup>
                 </Marker>
               ))}
-            </MarkerClusterGroup>
+            </>
           )}
         </MapContent>
       </MapContainer>
