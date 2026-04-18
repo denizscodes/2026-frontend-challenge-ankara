@@ -8,6 +8,20 @@
   --btn-info: #2563eb;
   --card-bg: #ffffff;
   --border: #e2e8f0;
+  --muted: #64748b;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.2);
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #f8fafc;
+  --card-bg: #0f172a;
+  --border: #1e293b;
+  --muted: #cbd5e1;
+  --btn-dark: #1e293b;
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
@@ -18,6 +32,7 @@
   --color-info: var(--btn-info);
   --color-card: var(--card-bg);
   --color-border: var(--border);
+  --color-muted: var(--muted);
 }
 
 body {
@@ -28,8 +43,8 @@ body {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--glass-bg);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
 }
 
