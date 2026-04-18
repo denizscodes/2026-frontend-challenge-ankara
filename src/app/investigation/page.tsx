@@ -33,9 +33,25 @@ const InvestigationMap = dynamic(() => import('@/components/InvestigationMap'), 
 export default function InvestigationPage() {
   const { linkedPeople, totalLeads, matchedCount, loading, error, refetch } = useInvestigation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [timeFilter, setTimeFilter] = useState<'all' | '24h' | '48h'>('all');
+  const [minSuspicion, setMinSuspicion] = useState<number | ''>(0);
+  const [maxSuspicion, setMaxSuspicion] = useState<number | ''>(100);
+  const [minReliability, setMinReliability] = useState<number | ''>(0);
+  const [maxReliability, setMaxReliability] = useState<number | ''>(100);
+  const [keywordFilter, setKeywordFilter] = useState('');
+  
   const [selectedPerson, setSelectedPerson] = useState<LinkedPerson | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'matched' | 'with_coords'>('all');
   const detailsRef = useRef<HTMLDivElement>(null);
+
+  const availableLocations = useMemo(() => {
+    const locs = new Set<string>();
+    linkedPeople.forEach(p => {
+      if (p.location) locs.add(p.location);
+    });
+    return Array.from(locs).sort();
+  }, [linkedPeople]);
 
   useEffect(() => {
     if (selectedPerson && window.innerWidth < 1024) {
@@ -45,17 +61,56 @@ export default function InvestigationPage() {
 
   const filteredPeople = useMemo(() => {
     return linkedPeople.filter(person => {
-      const matchesSearch = person.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        person.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        person.phone?.includes(searchQuery);
+      // Global Deep-Search Filters
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = !searchQuery || 
+        person.name.toLowerCase().includes(searchLower) ||
+        (person.email && person.email.toLowerCase().includes(searchLower)) ||
+        (person.phone && person.phone.includes(searchQuery)) ||
+        (person.location && person.location.toLowerCase().includes(searchLower)) ||
+        person.id.toLowerCase().includes(searchLower) ||
+        person.submissions.some(sub => 
+          Object.values(sub.answers).some((ans: any) => 
+            String(ans.answer).toLowerCase().includes(searchLower)
+          )
+        );
       
-      const matchesFilter = filterType === 'all' || 
+      // Location Filters
+      const matchesLocation = selectedLocations.length === 0 || 
+        (person.location && selectedLocations.includes(person.location));
+
+      // Time Filter
+      let matchesTime = true;
+      if (timeFilter !== 'all') {
+        const now = new Date();
+        const hours = timeFilter === '24h' ? 24 : 48;
+        const limit = new Date(now.getTime() - hours * 60 * 60 * 1000);
+        matchesTime = person.submissions.some(sub => new Date(sub.created_at) > limit);
+      }
+
+      // Analytical Filters
+      const matchesSuspicion = person.suspicionScore >= (minSuspicion === '' ? 0 : minSuspicion) && 
+                              person.suspicionScore <= (maxSuspicion === '' ? 100 : maxSuspicion);
+      const matchesReliability = person.reliability >= (minReliability === '' ? 0 : minReliability) && 
+                                person.reliability <= (maxReliability === '' ? 100 : maxReliability);
+      
+      // Keyword Filter
+      const matchesKeywords = !keywordFilter || person.submissions.some(sub => 
+        Object.values(sub.answers).some((ans: any) => 
+          String(ans.answer).toLowerCase().includes(keywordFilter.toLowerCase())
+        )
+      );
+
+      // Type Filter
+      const matchesType = 
+        filterType === 'all' || 
         (filterType === 'matched' && person.submissions.length > 1) ||
         (filterType === 'with_coords' && person.coordinates && person.coordinates.length > 0);
 
-      return matchesSearch && matchesFilter;
+      return matchesSearch && matchesType && matchesLocation && 
+             matchesTime && matchesSuspicion && matchesReliability && matchesKeywords;
     });
-  }, [linkedPeople, searchQuery, filterType]);
+  }, [linkedPeople, searchQuery, filterType, selectedLocations, timeFilter, minSuspicion, maxSuspicion, minReliability, maxReliability, keywordFilter]);
 
   if (error) {
     return (
@@ -130,16 +185,104 @@ export default function InvestigationPage() {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar / List */}
         <div className="w-full lg:w-1/3 space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="flex-grow">
-              <Input 
-                placeholder="Filter by name, email..." 
-                icon={<Search className="h-4 w-4" />}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="flex flex-col gap-3 flex-grow">
+               <Input 
+                 placeholder="Search by name, email..." 
+                 className="bg-card"
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 icon={<Search className="h-4 w-4" />}
+               />
+               
+               <div className="flex flex-col gap-2">
+                  <p className="text-[10px] font-bold text-muted uppercase px-1">Locations (Multi-select)</p>
+                  <div className="flex flex-wrap gap-1.5 p-2 bg-background/50 rounded-xl border border-border max-h-[100px] overflow-y-auto">
+                     {availableLocations.length === 0 ? (
+                       <span className="text-[10px] text-muted italic p-1">No locations found in intel</span>
+                     ) : (
+                       availableLocations.map(loc => (
+                         <button
+                           key={loc}
+                           onClick={() => {
+                             setSelectedLocations(prev => 
+                               prev.includes(loc) ? prev.filter(l => l !== loc) : [...prev, loc]
+                             );
+                           }}
+                           className={`text-[9px] px-2 py-1 rounded-lg border transition-all ${
+                             selectedLocations.includes(loc)
+                               ? 'bg-primary border-primary text-white shadow-sm'
+                               : 'bg-card border-border text-muted hover:border-primary/50'
+                           }`}
+                         >
+                           {loc}
+                         </button>
+                       ))
+                     )}
+                  </div>
+                  {selectedLocations.length > 0 && (
+                    <button 
+                      onClick={() => setSelectedLocations([])}
+                      className="text-[9px] text-primary font-bold uppercase text-right px-1 hover:underline"
+                    >
+                      Clear Locations ({selectedLocations.length})
+                    </button>
+                  )}
+               </div>
+
+               <div className="grid grid-cols-2 gap-3 bg-background/50 p-4 rounded-xl border border-border">
+                  <div className="space-y-1.5">
+                     <span className="text-[10px] font-bold text-muted uppercase block">Suspicion Score</span>
+                     <div className="flex items-center gap-1.5">
+                        <input 
+                          type="number" min="0" max="100" value={minSuspicion} 
+                          onChange={(e) => setMinSuspicion(e.target.value === '' ? '' : Number(e.target.value))}
+                          placeholder="Min"
+                          className="w-full bg-card border border-border rounded-lg px-2 py-1 text-xs font-mono"
+                        />
+                        <span className="text-muted text-xs">-</span>
+                        <input 
+                          type="number" min="0" max="100" value={maxSuspicion} 
+                          onChange={(e) => setMaxSuspicion(e.target.value === '' ? '' : Number(e.target.value))}
+                          placeholder="Max"
+                          className="w-full bg-card border border-border rounded-lg px-2 py-1 text-xs font-mono"
+                        />
+                     </div>
+                  </div>
+                  <div className="space-y-1.5">
+                     <span className="text-[10px] font-bold text-muted uppercase block">Reliability Score</span>
+                     <div className="flex items-center gap-1.5">
+                        <input 
+                          type="number" min="0" max="100" value={minReliability} 
+                          onChange={(e) => setMinReliability(e.target.value === '' ? '' : Number(e.target.value))}
+                          placeholder="Min"
+                          className="w-full bg-card border border-border rounded-lg px-2 py-1 text-xs font-mono"
+                        />
+                        <span className="text-muted text-xs">-</span>
+                        <input 
+                          type="number" min="0" max="100" value={maxReliability} 
+                          onChange={(e) => setMaxReliability(e.target.value === '' ? '' : Number(e.target.value))}
+                          placeholder="Max"
+                          className="w-full bg-card border border-border rounded-lg px-2 py-1 text-xs font-mono"
+                        />
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="flex items-center gap-2 bg-background/50 p-3 rounded-xl border border-border">
+                  <span className="text-[10px] font-bold text-muted uppercase mr-auto">Time Window:</span>
+                  {(['all', '24h', '48h'] as const).map(t => (
+                    <button 
+                      key={t}
+                      onClick={() => setTimeFilter(t)}
+                      className={`text-[9px] px-3 py-1 rounded-lg uppercase font-bold transition-colors ${
+                        timeFilter === t ? 'bg-primary text-white shadow-sm' : 'bg-card text-muted hover:bg-muted border border-border'
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+               </div>
             </div>
-          </div>
           <div className="flex flex-wrap gap-2 px-1">
             <Button 
               variant={filterType === 'all' ? 'dark' : 'outline'} 
@@ -185,15 +328,23 @@ export default function InvestigationPage() {
                     className={`text-left p-4 rounded-xl border transition-all hover:shadow-md group relative overflow-hidden ${
                       selectedPerson?.id === person.id 
                         ? 'bg-card border-primary ring-1 ring-primary shadow-lg' 
-                        : 'bg-card border-border'
+                        : person.suspicionScore > 40 && person.name.toLowerCase() !== 'podo' ? 'bg-card border-red-500' : 'bg-card border-border'
                     }`}
                   >
                     {person.submissions.length > 1 && (
-                      <div className="absolute top-0 right-0 bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg uppercase">
+                      <div className="absolute top-0 right-0 bg-blue-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg">
                         {person.submissions.length} Matches
                       </div>
                     )}
-                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">{person.name}</h3>
+                    {person.suspicionScore > 40 && person.name.toLowerCase() !== 'podo' && (
+                      <div className="absolute top-0 left-0 bg-red-600 text-white text-[9px] font-bold px-2 py-1 rounded-br-lg animate-pulse">
+                        HIGH SUSPICION: {person.suspicionScore}%
+                      </div>
+                    )}
+                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                      {person.name}
+                      {person.suspicionScore > 70 && <Zap className="h-3 w-3 text-red-600 fill-red-600" />}
+                    </h3>
                     <div className="flex flex-col gap-1 mt-2">
                        {person.email && (
                          <span className="text-[10px] text-muted flex items-center gap-1">
@@ -245,6 +396,37 @@ export default function InvestigationPage() {
                           <span className="text-[10px] font-bold text-muted bg-gray-100 px-2 py-0.5 rounded-full">REL_INDEX: {selectedPerson.reliability.toFixed(1)}%</span>
                        </div>
                        <h2 className="text-4xl font-black text-foreground leading-tight">{selectedPerson.name}</h2>
+                       
+                       {/* Suspicion Analysis Overlay */}
+                       {selectedPerson.suspicionScore > 0 && selectedPerson.name.toLowerCase() !== 'podo' && (
+                         <div className="mt-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                               <div className="flex items-center gap-2 text-red-600 font-bold text-xs uppercase tracking-widest mb-1">
+                                  <Zap className="h-4 w-4 fill-red-600" />
+                                  Threat Assessment: {selectedPerson.suspicionScore > 75 ? 'Critical' : 'Elevated'}
+                               </div>
+                               <p className="text-sm font-medium text-foreground opacity-80">{selectedPerson.suspicionReason}</p>
+                               <div className="mt-2 flex flex-wrap gap-2">
+                                  {selectedPerson.submissions.length > 2 && (
+                                     <span className="text-[9px] bg-red-500/20 text-red-600 px-1.5 py-0.5 rounded uppercase font-bold">Frequent Reporter</span>
+                                  )}
+                                  {selectedPerson.coordinates && selectedPerson.coordinates.length > 1 && (
+                                     <span className="text-[9px] bg-red-500/20 text-red-600 px-1.5 py-0.5 rounded uppercase font-bold">Trail Overlap</span>
+                                  )}
+                                  {selectedPerson.reliability < 50 && (
+                                     <span className="text-[9px] bg-red-500/20 text-red-600 px-1.5 py-0.5 rounded uppercase font-bold">Unverified Data</span>
+                                  )}
+                               </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                               <div className="text-right">
+                                  <p className="text-[10px] font-bold text-muted uppercase">Suspicion Score</p>
+                                  <p className="text-2xl font-black text-red-600">{selectedPerson.suspicionScore}%</p>
+                               </div>
+                            </div>
+                         </div>
+                       )}
+
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 mt-6">
                           <div className="flex items-center gap-3 text-sm text-foreground">
                              <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center text-muted"><Mail className="h-4 w-4" /></div>

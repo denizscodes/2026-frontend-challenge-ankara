@@ -1,11 +1,12 @@
 'use client';
 
 import { useJotform } from '@/hooks/useJotform';
+import { useInvestigation } from '@/hooks/useInvestigation';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { CardSkeleton } from '@/components/Skeleton';
-import { Search, Filter, RefreshCcw, FileText, ChevronRight, Clock, MessageSquare } from 'lucide-react';
+import { Search, Filter, RefreshCcw, FileText, ChevronRight, Clock, MessageSquare, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo } from 'react';
 
@@ -15,7 +16,19 @@ const FORM_IDS = process.env.NEXT_PUBLIC_JOTFORM_FORM_IDS?.split(',') || [];
 
 export default function Home() {
   const { data, loading, error, refetch } = useJotform(FORM_IDS);
+  const { linkedPeople } = useInvestigation();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const latestSighting = useMemo(() => {
+    if (!linkedPeople || linkedPeople.length === 0) return null;
+    // Get all submissions across all people and sort by date
+    const allSubs = linkedPeople.flatMap(p => p.submissions.map(sub => ({
+      ...sub,
+      location: p.location || 'Unknown'
+    })));
+    allSubs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return allSubs[0];
+  }, [linkedPeople]);
 
   const filteredData = useMemo(() => {
     if (!data) return [];
@@ -71,7 +84,10 @@ export default function Home() {
           <div className="w-full md:w-48 h-64 relative rounded-xl overflow-hidden shadow-2xl border-4 border-white rotate-3 hover:rotate-0 transition-transform duration-500 group">
              <img src="/podo_poster.png" alt="Missing Podo" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
-                <p className="text-white text-[10px] font-bold uppercase">Last Seen: Oakwood</p>
+                <p className="text-white text-[10px] font-bold uppercase flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-primary fill-primary" />
+                  Last Seen: {latestSighting?.location || 'Oakwood'}
+                </p>
              </div>
           </div>
         </div>

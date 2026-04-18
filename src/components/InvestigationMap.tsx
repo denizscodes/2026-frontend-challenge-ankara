@@ -51,29 +51,31 @@ export default function InvestigationMap({ coordinates, center = [39.9334, 32.85
     : center;
 
   return (
-    <div className="h-full w-full rounded-2xl overflow-hidden border border-border shadow-inner bg-background">
-      <MapContainer 
-        key={`map-${mapKey}`}
-        center={actualCenter} 
-        zoom={zoom} 
-        scrollWheelZoom={false} 
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <ChangeView center={actualCenter} zoom={zoom} />
-        {coordinates.map((coord, idx) => (
-          <Marker key={`${coord.lat}-${coord.lng}-${idx}`} position={[coord.lat, coord.lng]} icon={customIcon}>
-            {coord.label && (
-              <Popup>
-                <div className="text-xs font-bold">{coord.label}</div>
-              </Popup>
-            )}
-          </Marker>
-        ))}
-      </MapContainer>
+    <div className="h-full w-full rounded-2xl overflow-hidden border border-border shadow-inner bg-background relative min-h-[400px]">
+      {isReady && typeof window !== 'undefined' && (
+        <MapContainer 
+          key={`map-instance-${mapKey}`}
+          center={actualCenter} 
+          zoom={zoom} 
+          scrollWheelZoom={false} 
+          style={{ height: '100%', width: '100%' }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <ChangeView center={actualCenter} zoom={zoom} />
+          {coordinates.map((coord, idx) => (
+            <Marker key={`marker-${idx}-${coord.lat}-${coord.lng}`} position={[coord.lat, coord.lng]} icon={customIcon}>
+              {coord.label && (
+                <Popup>
+                  <div className="text-xs font-bold">{coord.label}</div>
+                </Popup>
+              )}
+            </Marker>
+          ))}
+        </MapContainer>
+      )}
     </div>
   );
 }
